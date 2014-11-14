@@ -1,0 +1,135 @@
+heat_template_version: 2013-05-23
+
+parameters:
+  image:
+    type: string
+    label: Image name or ID
+    description: Image to be used for compute instance
+    default: a3ba4cf5-70b9-4805-afa2-30d1ab81a625
+
+  flavor:
+    type: string
+    label: Flavor
+    description: Type of instance (flavor) to be used
+    default: performance1-1
+
+  key_name:
+    type: string
+    label: Key name
+    description: Name of key-pair to be used for compute instance
+    default: defunct
+
+resources:
+  heat_mgmt_vxlan:
+    type: Rackspace::Cloud::Network
+    properties:
+      cidr: 172.29.232.0/22
+      label: heat_mgmt_vxlan
+
+  heat_tunnel:
+    type: Rackspace::Cloud::Network
+    properties:
+      cidr: 172.29.240.0/22
+      label: heat_tunnel
+
+  heat_storage:
+    type: Rackspace::Cloud::Network
+    properties:
+      cidr: 172.29.244.0/22
+      label: heat_storage
+
+  heat-controller-1:
+    type: "Rackspace::Cloud::Server"
+    #depends_on: [ heat-controller-2, heat-controller-3, heat-compute-1, heat-compute-2 ]
+    properties:
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      key_name: { get_param: key_name }
+      name: heat-controller-1
+      networks:
+        - uuid: 00000000-0000-0000-0000-000000000000
+        - uuid: 11111111-1111-1111-1111-111111111111
+        - uuid: { get_resource: heat_mgmt_vxlan }
+        - uuid: { get_resource: heat_tunnel }
+        - uuid: { get_resource: heat_storage }
+      user_data:
+        str_replace:
+          template: { get_file: config_controller_primary.sh }
+          params:
+            $id: "1"
+
+  heat-controller-2:
+    type: "Rackspace::Cloud::Server"
+    properties:
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      key_name: { get_param: key_name }
+      name: heat-controller-2
+      networks:
+        - uuid: 00000000-0000-0000-0000-000000000000
+        - uuid: 11111111-1111-1111-1111-111111111111
+        - uuid: { get_resource: heat_mgmt_vxlan }
+        - uuid: { get_resource: heat_tunnel }
+        - uuid: { get_resource: heat_storage }
+      user_data:
+        str_replace:
+          template: { get_file: config_controller_other.sh }
+          params:
+            $id: "2"
+
+  heat-controller-3:
+    type: "Rackspace::Cloud::Server"
+    properties:
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      key_name: { get_param: key_name }
+      name: heat-controller-3
+      networks:
+        - uuid: 00000000-0000-0000-0000-000000000000
+        - uuid: 11111111-1111-1111-1111-111111111111
+        - uuid: { get_resource: heat_mgmt_vxlan }
+        - uuid: { get_resource: heat_tunnel }
+        - uuid: { get_resource: heat_storage }
+      user_data:
+        str_replace:
+          template: { get_file: config_controller_other.sh }
+          params:
+            $id: "3"
+
+  heat-compute-1:
+    type: "Rackspace::Cloud::Server"
+    properties:
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      key_name: { get_param: key_name }
+      name: heat-compute-1
+      networks:
+        - uuid: 00000000-0000-0000-0000-000000000000
+        - uuid: 11111111-1111-1111-1111-111111111111
+        - uuid: { get_resource: heat_mgmt_vxlan }
+        - uuid: { get_resource: heat_tunnel }
+        - uuid: { get_resource: heat_storage }
+      user_data:
+        str_replace:
+          template: { get_file: config_compute.sh }
+          params:
+            $id: "4"
+
+  heat-compute-2:
+    type: "Rackspace::Cloud::Server"
+    properties:
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      key_name: { get_param: key_name }
+      name: heat-compute-2
+      networks:
+        - uuid: 00000000-0000-0000-0000-000000000000
+        - uuid: 11111111-1111-1111-1111-111111111111
+        - uuid: { get_resource: heat_mgmt_vxlan }
+        - uuid: { get_resource: heat_tunnel }
+        - uuid: { get_resource: heat_storage }
+      user_data:
+        str_replace:
+          template: { get_file: config_compute.sh }
+          params:
+            $id: "5"

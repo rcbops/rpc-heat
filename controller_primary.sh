@@ -28,6 +28,8 @@ ptG+vgOPUKOdkjtR9HUveHgm+PrQjs7mx0GhzV8Y2RKN9ENJw+AAyQ==
 -----END RSA PRIVATE KEY-----
 EOF
 
+chmod 600 .ssh/*
+
 cd /root
 git clone https://github.com/rcbops/ansible-lxc-rpc.git
 cd ansible-lxc-rpc

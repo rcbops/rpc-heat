@@ -11,7 +11,7 @@ parameters:
     type: string
     label: Flavor
     description: Type of instance (flavor) to be used
-    default: performance1-1
+    default: performance1-8
 
   key_name:
     type: string
@@ -130,6 +130,6 @@ resources:
         - uuid: { get_resource: heat_storage }
       user_data:
         str_replace:
-          template: { get_file: config_compute.sh }
+          template: { get_file: config_compute_all.sh }
           params:
             $id: "5"

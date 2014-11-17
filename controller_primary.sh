@@ -35,6 +35,7 @@ git clone https://github.com/rcbops/ansible-lxc-rpc.git
 cd ansible-lxc-rpc
 pip install -r requirements.txt
 cp -a etc/rpc_deploy /etc/
+scripts/pw-token-gen.py --file /etc/rpc_deploy/user_variables.yml
 cat > /etc/rpc_deploy/rpc_user_config.yml << "EOF"
 ---
 # Copyright 2014, Rackspace US, Inc.
@@ -196,4 +197,7 @@ haproxy_hosts:
 EOF
 
 cd rpc_deployment
-ansible-playbook -e @/etc/rpc_deploy/user_variables.yml playbooks/setup/host-setup.yml
+ansible-playbook -e @/etc/rpc_deploy/user_variables.yml playbooks/setup/host-setup.yml \
+                                                        playbooks/infrastructure/haproxy-install.yml \
+                                                        playbooks/infrastructure/infrastructure-setup.yml \
+                                                        playbooks/openstack/openstack-setup.yml

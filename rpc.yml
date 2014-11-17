@@ -40,7 +40,7 @@ resources:
 
   heat-controller-1:
     type: "Rackspace::Cloud::Server"
-    #depends_on: [ heat-controller-2, heat-controller-3, heat-compute-1, heat-compute-2 ]
+    depends_on: [ heat-controller-2, heat-controller-3, heat-compute-1, heat-compute-2 ]
     properties:
       image: { get_param: image }
       flavor: { get_param: flavor }

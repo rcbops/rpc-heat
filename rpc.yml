@@ -111,7 +111,7 @@ resources:
         - uuid: { get_resource: heat_storage }
       user_data:
         str_replace:
-          template: { get_file: config_compute.sh }
+          template: { get_file: config_compute_all.sh }
           params:
             $id: "4"
 

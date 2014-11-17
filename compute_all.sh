@@ -1,10 +1,11 @@
 found=0
+tmp_file=$(mktemp)
 
 for interface in eth2 eth3 eth4; do
   ifdown $interface
 done
 
-cat /etc/network/interfaces | while read line; do
+cat $INTERFACES | while read line; do
   if echo "$line" | grep "# Label heat_"; then
     found=1
   fi
@@ -14,22 +15,22 @@ cat /etc/network/interfaces | while read line; do
   fi
 
   if [ $found -eq 0 ]; then
-    echo "$line" >> /etc/network/interfaces.tmp
+    echo "$line" >> $tmp_file
   fi
 done
 
-echo "source /etc/network/interfaces.d/*.cfg" >> /etc/network/interfaces.tmp
+echo "source ${INTERFACES_D}/*.cfg" >> $tmp_file
 
-mv -f /etc/network/interfaces.tmp /etc/network/interfaces
+mv -f $tmp_file ${INTERFACES}
 
-cat > /etc/network/interfaces.d/eth2.cfg << "EOF"
+cat > ${INTERFACES_D}/eth2.cfg << "EOF"
 auto eth2
 iface eth2 inet static
     address 172.29.232.$id
     netmask 255.255.252.0
 EOF
 
-cat > /etc/network/interfaces.d/vxlan2.cfg << "EOF"
+cat > ${INTERFACES_D}/vxlan2.cfg << "EOF"
 auto vxlan2
 iface vxlan2 inet manual
         pre-up ip link add vxlan2 type vxlan id 2 group 239.0.0.16 ttl 4 dev eth2
@@ -37,7 +38,7 @@ iface vxlan2 inet manual
         down ip link set vxlan2 down
 EOF
 
-cat > /etc/network/interfaces.d/br-mgmt.cfg << "EOF"
+cat > ${INTERFACES_D}/br-mgmt.cfg << "EOF"
 auto br-mgmt
 iface br-mgmt inet static
     address 172.29.236.$id
@@ -45,12 +46,12 @@ iface br-mgmt inet static
     bridge_ports vxlan2
 EOF
 
-cat > /etc/network/interfaces.d/eth3.cfg << "EOF"
+cat > ${INTERFACES_D}/eth3.cfg << "EOF"
 auto eth3
 iface eth3 inet manual
 EOF
 
-cat > /etc/network/interfaces.d/vxlan3.cfg << "EOF"
+cat > ${INTERFACES_D}/vxlan3.cfg << "EOF"
 auto vxlan3
 iface vxlan3 inet manual
         pre-up ip link add vxlan3 type vxlan id 3 group 239.0.0.16 ttl 4 dev eth3
@@ -58,7 +59,7 @@ iface vxlan3 inet manual
         down ip link set vxlan3 down
 EOF
 
-cat > /etc/network/interfaces.d/br-vxlan.cfg << "EOF"
+cat > ${INTERFACES_D}/br-vxlan.cfg << "EOF"
 auto br-vxlan
 iface br-vxlan inet static
     address 172.29.240.$id
@@ -66,20 +67,20 @@ iface br-vxlan inet static
     bridge_ports vxlan3
 EOF
 
-cat > /etc/network/interfaces.d/eth4.cfg << "EOF"
+cat > ${INTERFACES_D}/eth4.cfg << "EOF"
 auto eth4
 iface eth4 inet static
     address 172.29.244.$id
     netmask 255.255.252.0
 EOF
 
-cat > /etc/network/interfaces.d/br-storage.cfg << "EOF"
+cat > ${INTERFACES_D}/br-storage.cfg << "EOF"
 auto br-storage
 iface br-storage inet manual
     bridge_ports eth4
 EOF
 
-cat > /etc/network/interfaces.d/br-vlan.cfg << "EOF"
+cat > ${INTERFACES_D}/br-vlan.cfg << "EOF"
 auto br-vlan
 iface br-vlan inet manual
     bridge_ports none

@@ -36,6 +36,7 @@ cd ansible-lxc-rpc
 pip install -r requirements.txt
 cp -a etc/rpc_deploy /etc/
 scripts/pw-token-gen.py --file /etc/rpc_deploy/user_variables.yml
+echo "nova_virt_type: qemu" >> /etc/rpc_deploy/user_variables.yml
 
 environment_version=$(md5sum /etc/rpc_deploy/rpc_environment.yml | awk '{print $1}')
 

@@ -19,6 +19,12 @@ parameters:
     description: Name of key-pair to be used for compute instance
     default: defunct
 
+  version:
+    type: string
+    label: RPC Version
+    description: RPC version to install
+    default: master
+
 resources:
   heat_mgmt_vxlan:
     type: Rackspace::Cloud::Network
@@ -40,6 +46,8 @@ resources:
 
   heat-controller-1:
     type: "Rackspace::Cloud::Server"
+    # Don't build heat-controller-1 until the others are up as the ansible run
+    # will fail if they are down.
     depends_on: [ heat-controller-2, heat-controller-3, heat-compute-1, heat-compute-2 ]
     properties:
       image: { get_param: image }
@@ -57,6 +65,7 @@ resources:
           template: { get_file: config_controller_primary.sh }
           params:
             $id: "1"
+            $version: { get_param: version }
 
   heat-controller-2:
     type: "Rackspace::Cloud::Server"
@@ -76,6 +85,7 @@ resources:
           template: { get_file: config_controller_other.sh }
           params:
             $id: "2"
+            $version: { get_param: version }
 
   heat-controller-3:
     type: "Rackspace::Cloud::Server"
@@ -95,6 +105,7 @@ resources:
           template: { get_file: config_controller_other.sh }
           params:
             $id: "3"
+            $version: { get_param: version }
 
   heat-compute-1:
     type: "Rackspace::Cloud::Server"
@@ -114,6 +125,7 @@ resources:
           template: { get_file: config_compute_all.sh }
           params:
             $id: "4"
+            $version: { get_param: version }
 
   heat-compute-2:
     type: "Rackspace::Cloud::Server"
@@ -133,3 +145,4 @@ resources:
           template: { get_file: config_compute_all.sh }
           params:
             $id: "5"
+            $version: { get_param: version }

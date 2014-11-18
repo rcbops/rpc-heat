@@ -31,7 +31,7 @@ EOF
 chmod 600 .ssh/*
 
 cd /root
-git clone https://github.com/rcbops/ansible-lxc-rpc.git
+git clone -b $version https://github.com/rcbops/ansible-lxc-rpc.git
 cd ansible-lxc-rpc
 pip install -r requirements.txt
 cp -a etc/rpc_deploy /etc/
@@ -54,7 +54,7 @@ cat > /etc/rpc_deploy/rpc_user_config.yml << "EOF"
 
 # This is the md5 of the environment file
 # this will ensure consistency when deploying.
-environment_version: 3511a43b8e4cc39af4beaaa852b5f917
+environment_version: $(md5sum /etc/rpc_deploy/rpc_environment.yml | awk '{print $1}')
 
 # User defined CIDR used for containers
 # Global cidr/s used for everything.

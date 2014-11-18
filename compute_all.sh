@@ -1,7 +1,8 @@
 found=0
+found1=0
 tmp_file=$(mktemp)
 
-for interface in eth2 eth3 eth4; do
+for interface in eth1 eth2 eth3 eth4; do
   ifdown $interface
 done
 
@@ -10,18 +11,36 @@ cat $INTERFACES | while read line; do
     found=1
   fi
 
+  if echo "$line" | grep "# Label private"; then
+    found1=1
+  fi
+
   if [ $found -eq 1 ] && [ "$line" = "" ]; then
     found=0
   fi
 
-  if [ $found -eq 0 ]; then
+  if [ $found1 -eq 1 ] && [ "$line" = "" ]; then
+    echo "bridge_ports eth1" >> ${INTERFACES_D}/br-snet.cfg
+    found1=0
+  fi
+
+  if [ $found -eq 0 ] && [ $found1 -eq 0 ]; then
     echo "$line" >> $tmp_file
+  fi
+
+  if [ $found1 -eq 1 ]; then
+    echo "$line" | sed -e 's/eth1/br-snet/g' >> ${INTERFACES_D}/br-snet.cfg
   fi
 done
 
 echo "source ${INTERFACES_D}/*.cfg" >> $tmp_file
 
 mv -f $tmp_file ${INTERFACES}
+
+cat > ${INTERFACES_D}/eth1.cfg << "EOF"
+auto eth1
+iface eth1 inet manual
+EOF
 
 cat > ${INTERFACES_D}/eth2.cfg << "EOF"
 auto eth2

@@ -36,6 +36,9 @@ cd ansible-lxc-rpc
 pip install -r requirements.txt
 cp -a etc/rpc_deploy /etc/
 scripts/pw-token-gen.py --file /etc/rpc_deploy/user_variables.yml
+
+environment_version=$(md5sum /etc/rpc_deploy/rpc_environment.yml | awk '{print $1}')
+
 cat > /etc/rpc_deploy/rpc_user_config.yml << "EOF"
 ---
 # Copyright 2014, Rackspace US, Inc.
@@ -54,7 +57,7 @@ cat > /etc/rpc_deploy/rpc_user_config.yml << "EOF"
 
 # This is the md5 of the environment file
 # this will ensure consistency when deploying.
-environment_version: $(md5sum /etc/rpc_deploy/rpc_environment.yml | awk '{print $1}')
+environment_version: ${environment_version}
 
 # User defined CIDR used for containers
 # Global cidr/s used for everything.

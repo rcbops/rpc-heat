@@ -39,7 +39,7 @@ scripts/pw-token-gen.py --file /etc/rpc_deploy/user_variables.yml
 
 environment_version=$(md5sum /etc/rpc_deploy/rpc_environment.yml | awk '{print $1}')
 
-cat > /etc/rpc_deploy/rpc_user_config.yml << "EOF"
+cat > /etc/rpc_deploy/rpc_user_config.yml << EOF
 ---
 # Copyright 2014, Rackspace US, Inc.
 #

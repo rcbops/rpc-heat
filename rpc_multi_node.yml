@@ -66,6 +66,7 @@ resources:
           params:
             $id: "1"
             $version: { get_param: version }
+            $external_vip_ip: { get_attr: [heat-controller-3, accessIPv4] }
 
   heat-controller-2:
     type: "Rackspace::Cloud::Server"

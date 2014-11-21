@@ -4,9 +4,10 @@ set -e
 
 INTERFACES="/etc/network/interfaces"
 INTERFACES_D="/etc/network/interfaces.d"
-EXTERNAL_VIP_IP="$external_vip_ip"
+EXTERNAL_LB_VIP_ADDRESS="__EXTERNAL_VIP_IP__"
 
-PUBKEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCkouwNWE73SrUSWP7AxH+8WXI5LTgPOcSxEhmurqjwkakRXvelabQdnI6qhvhxxWnhtIfrw3ARNAUMNSzXq0MJAyjiKoJI/nSBfuTwq9QS8rjXm1iZ7KcHeNpS/H6nb8aJyzMO2fvVNQ4J6WYFyLPBH3pXDeSG+9sW8Fm2WUC8097H0r/mCW0+T8X3ftaUOFO85F54Eal4/4gG7EeYAYzdCTliFloyqi5/SLo2NqDUsPo+N448RyadR7rCqTyoCf2kHmmDzBSNBzW0YpfBtzRZWSnk8GRz+7UejkQlt/alnu2kRbt9Lx/ooRVDqHkBZhDDSFKHkEw4mL3Daadyxxuh root@heat-controller-1"
+PUBLIC_KEY="__PUBLIC_KEY__"
+PRIVATE_KEY="__PRIVATE_KEY__"
 
 apt-get update
 apt-get install -y bridge-utils git
@@ -21,8 +22,8 @@ cat > /etc/hosts << "EOF"
 EOF
 
 cd /root
-echo $PUBKEY > .ssh/id_rsa.pub
-echo $PUBKEY >> .ssh/authorized_keys
+echo $PUBLIC_KEY > .ssh/id_rsa.pub
+echo $PUBLIC_KEY >> .ssh/authorized_keys
 chmod 600 .ssh/*
 
 found=0
@@ -72,7 +73,7 @@ EOF
 cat > ${INTERFACES_D}/eth2.cfg << "EOF"
 auto eth2
 iface eth2 inet static
-    address 172.29.232.$id
+    address 172.29.232.__ID__
     netmask 255.255.252.0
 EOF
 
@@ -87,7 +88,7 @@ EOF
 cat > ${INTERFACES_D}/br-mgmt.cfg << "EOF"
 auto br-mgmt
 iface br-mgmt inet static
-    address 172.29.236.$id
+    address 172.29.236.__ID__
     netmask 255.255.252.0
     bridge_ports vxlan2
 EOF
@@ -95,7 +96,7 @@ EOF
 cat > ${INTERFACES_D}/eth4.cfg << "EOF"
 auto eth4
 iface eth4 inet static
-    address 172.29.244.$id
+    address 172.29.244.__ID__
     netmask 255.255.252.0
 EOF
 

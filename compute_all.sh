@@ -14,7 +14,7 @@ EOF
 cat > ${INTERFACES_D}/br-vxlan.cfg << "EOF"
 auto br-vxlan
 iface br-vxlan inet static
-    address 172.29.240.$id
+    address 172.29.240.__ID__
     netmask 255.255.252.0
     bridge_ports vxlan3
 EOF

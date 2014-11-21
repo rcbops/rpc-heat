@@ -26,6 +26,15 @@ parameters:
     default: master
 
 resources:
+  #wait_condition:
+  #  type: "OS::Heat::SwiftSignal"
+  #  properties:
+  #    handle: { get_resource: wait_condition_handle }
+  #    timeout: 9000
+
+  #wait_condition_handle:
+  #  type: "OS::Heat::SwiftSignalHandle"
+
   heat_mgmt_vxlan:
     type: Rackspace::Cloud::Network
     properties:
@@ -64,9 +73,12 @@ resources:
         str_replace:
           template: { get_file: config_controller_primary.sh }
           params:
-            $id: "1"
-            $version: { get_param: version }
-            $external_vip_ip: { get_attr: [heat-controller-3, accessIPv4] }
+            __ID__: "1"
+            __VERSION__: { get_param: version }
+            __EXTERNAL_VIP_IP__: { get_attr: [heat-controller-3, accessIPv4] }
+            __PRIVATE_KEY__: { get_file: id_rsa }
+            __PUBLIC_KEY__: { get_file: id_rsa.pub }
+            #__CURL_CLI__: { get_attr: ['wait_condition_handle', 'curl_cli'] }
 
   heat-controller-2:
     type: "Rackspace::Cloud::Server"
@@ -85,8 +97,9 @@ resources:
         str_replace:
           template: { get_file: config_controller_other.sh }
           params:
-            $id: "2"
-            $version: { get_param: version }
+            __ID__: "2"
+            __VERSION__: { get_param: version }
+            __PUBLIC_KEY__: { get_file: id_rsa.pub }
 
   heat-controller-3:
     type: "Rackspace::Cloud::Server"
@@ -105,8 +118,9 @@ resources:
         str_replace:
           template: { get_file: config_controller_other.sh }
           params:
-            $id: "3"
-            $version: { get_param: version }
+            __ID__: "3"
+            __VERSION__: { get_param: version }
+            __PUBLIC_KEY__: { get_file: id_rsa.pub }
 
   heat-compute-1:
     type: "Rackspace::Cloud::Server"
@@ -125,8 +139,9 @@ resources:
         str_replace:
           template: { get_file: config_compute_all.sh }
           params:
-            $id: "4"
-            $version: { get_param: version }
+            __ID__: "4"
+            __VERSION__: { get_param: version }
+            __PUBLIC_KEY__: { get_file: id_rsa.pub }
 
   heat-compute-2:
     type: "Rackspace::Cloud::Server"
@@ -145,5 +160,6 @@ resources:
         str_replace:
           template: { get_file: config_compute_all.sh }
           params:
-            $id: "5"
-            $version: { get_param: version }
+            __ID__: "5"
+            __VERSION__: { get_param: version }
+            __PUBLIC_KEY__: { get_file: id_rsa.pub }

@@ -21,5 +21,3 @@ ansible-playbook -e @/etc/rpc_deploy/user_variables.yml playbooks/setup/host-set
                                                         playbooks/infrastructure/haproxy-install.yml \
                                                         playbooks/infrastructure/infrastructure-setup.yml \
                                                         playbooks/openstack/openstack-setup.yml
-
-#__CURL_CLI__ --data-binary '{"status": "SUCCESS"}'

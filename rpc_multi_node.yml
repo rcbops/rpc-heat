@@ -26,15 +26,6 @@ parameters:
     default: master
 
 resources:
-  #wait_condition:
-  #  type: "OS::Heat::SwiftSignal"
-  #  properties:
-  #    handle: { get_resource: wait_condition_handle }
-  #    timeout: 9000
-
-  #wait_condition_handle:
-  #  type: "OS::Heat::SwiftSignalHandle"
-
   heat_mgmt_vxlan:
     type: Rackspace::Cloud::Network
     properties:
@@ -78,7 +69,6 @@ resources:
             __EXTERNAL_VIP_IP__: { get_attr: [heat-controller-3, accessIPv4] }
             __PRIVATE_KEY__: { get_file: id_rsa }
             __PUBLIC_KEY__: { get_file: id_rsa.pub }
-            #__CURL_CLI__: { get_attr: ['wait_condition_handle', 'curl_cli'] }
 
   heat-controller-2:
     type: "Rackspace::Cloud::Server"

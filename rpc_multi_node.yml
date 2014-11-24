@@ -17,7 +17,7 @@ parameters:
     type: string
     label: Key name
     description: Name of key-pair to be used for compute instance
-    default: defunct
+    default: default
 
   version:
     type: string

@@ -4,21 +4,22 @@ set -e
 
 INTERFACES="/etc/network/interfaces"
 INTERFACES_D="/etc/network/interfaces.d"
-EXTERNAL_LB_VIP_ADDRESS="__EXTERNAL_VIP_IP__"
+EXTERNAL_VIP_IP="%%EXTERNAL_VIP_IP%%"
+CLUSTER_PREFIX="%%CLUSTER_PREFIX%%"
 
-PUBLIC_KEY="__PUBLIC_KEY__"
-PRIVATE_KEY="__PRIVATE_KEY__"
+PUBLIC_KEY="%%PUBLIC_KEY%%"
+PRIVATE_KEY="%%PRIVATE_KEY%%"
 
 apt-get update
 apt-get install -y bridge-utils git
 
 cat > /etc/hosts << "EOF"
 127.0.0.1 localhost
-172.29.236.1 heat-controller-1
-172.29.236.2 heat-controller-2
-172.29.236.3 heat-controller-3
-172.29.236.4 heat-compute-1
-172.29.236.5 heat-compute-2
+172.29.236.1 %%CLUSTER_PREFIX%%-controller-1
+172.29.236.2 %%CLUSTER_PREFIX%%-controller-2
+172.29.236.3 %%CLUSTER_PREFIX%%-controller-3
+172.29.236.4 %%CLUSTER_PREFIX%%-compute-1
+172.29.236.5 %%CLUSTER_PREFIX%%-compute-2
 EOF
 
 cd /root
@@ -73,7 +74,7 @@ EOF
 cat > ${INTERFACES_D}/eth2.cfg << "EOF"
 auto eth2
 iface eth2 inet static
-    address 172.29.232.__ID__
+    address 172.29.232.%%ID%%
     netmask 255.255.252.0
 EOF
 
@@ -88,7 +89,7 @@ EOF
 cat > ${INTERFACES_D}/br-mgmt.cfg << "EOF"
 auto br-mgmt
 iface br-mgmt inet static
-    address 172.29.236.__ID__
+    address 172.29.236.%%ID%%
     netmask 255.255.252.0
     bridge_ports vxlan2
 EOF
@@ -96,7 +97,7 @@ EOF
 cat > ${INTERFACES_D}/eth4.cfg << "EOF"
 auto eth4
 iface eth4 inet static
-    address 172.29.244.__ID__
+    address 172.29.244.%%ID%%
     netmask 255.255.252.0
 EOF
 
@@ -139,7 +140,7 @@ echo "$PRIVATE_KEY" > .ssh/id_rsa
 chmod 600 .ssh/*
 
 cd /root
-git clone -b __VERSION__ https://github.com/rcbops/ansible-lxc-rpc.git
+git clone -b %%RPC_VERSION%% https://github.com/rcbops/ansible-lxc-rpc.git
 cd ansible-lxc-rpc
 pip install -r requirements.txt
 cp -a etc/rpc_deploy /etc/
@@ -151,7 +152,8 @@ environment_version=$(md5sum /etc/rpc_deploy/rpc_environment.yml | awk '{print $
 
 curl -o $rpc_user_config https://raw.githubusercontent.com/mattt416/rpc_heat/master/rpc_user_config.yml
 sed -i "s/__ENVIRONMENT_VERSION__/$environment_version/g" $rpc_user_config
-sed -i "s/__EXTERNAL_LB_VIP_ADDRESS__/$EXTERNAL_LB_VIP_ADDRESS/g" $rpc_user_config
+sed -i "s/__EXTERNAL_VIP_IP__/$EXTERNAL_VIP_IP/g" $rpc_user_config
+sed -i "s/__CLUSTER_PREFIX__/$CLUSTER_PREFIX/g" $rpc_user_config
 
 cd rpc_deployment
 ansible-playbook -e @/etc/rpc_deploy/user_variables.yml playbooks/setup/host-setup.yml \

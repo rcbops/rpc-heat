@@ -42,7 +42,7 @@ global_overrides:
   # Internal Management vip address
   internal_lb_vip_address: 172.29.236.3
   # External DMZ VIP address
-  external_lb_vip_address: __EXTERNAL_LB_VIP_ADDRESS__
+  external_lb_vip_address: __EXTERNAL_VIP_IP__
   # Bridged interface to use with tunnel type networks
   tunnel_bridge: "br-vxlan"
   # Bridged interface to build containers with
@@ -106,23 +106,23 @@ global_overrides:
 
 # User defined Infrastructure Hosts, this should be a required group
 infra_hosts:
-  heat-controller-1:
+  __CLUSTER_PREFIX__-controller-1:
     ip: 172.29.236.1
-  heat-controller-2:
+  __CLUSTER_PREFIX__-controller-2:
     ip: 172.29.236.2
-  heat-controller-3:
+  __CLUSTER_PREFIX__-controller-3:
     ip: 172.29.236.3
 
 # User defined Compute Hosts, this should be a required group
 compute_hosts:
-  heat-compute-1:
+  __CLUSTER_PREFIX__-compute-1:
     ip: 172.29.236.4
-  heat-compute-2:
+  __CLUSTER_PREFIX__-compute-2:
     ip: 172.29.236.5
 
 # User defined Storage Hosts, this should be a required group
 storage_hosts:
-  heat-compute-1:
+  __CLUSTER_PREFIX__-compute-1:
     ip: 172.29.236.4
     # "container_vars" can be set outside of all other options as
     # host specific optional variables.
@@ -144,14 +144,14 @@ storage_hosts:
 
 # User defined Logging Hosts, this should be a required group
 log_hosts:
-  heat-controller-1:
+  __CLUSTER_PREFIX__-controller-1:
     ip: 172.29.236.1
 
 # User defined Networking Hosts, this should be a required group
 network_hosts:
-  heat-controller-2:
+  __CLUSTER_PREFIX__-controller-2:
     ip: 172.29.236.2
 
 haproxy_hosts:
-  heat-controller-3:
+  __CLUSTER_PREFIX__-controller-3:
     ip: 172.29.236.3

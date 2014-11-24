@@ -21,9 +21,15 @@ parameters:
 
   version:
     type: string
-    label: RPC Version
+    label: RPC version
     description: RPC version to install
     default: master
+
+  cluster_prefix:
+    type: string
+    label: Cluster prefix
+    description: Prefix to use when building cluster
+    default: heat
 
 resources:
   heat_mgmt_vxlan:
@@ -44,16 +50,20 @@ resources:
       cidr: 172.29.244.0/22
       label: heat_storage
 
-  heat-controller-1:
+  controller1:
     type: "Rackspace::Cloud::Server"
-    # Don't build heat-controller-1 until the others are up as the ansible run
+    # Don't build controller1 until the others are up as the ansible run
     # will fail if they are down.
-    depends_on: [ heat-controller-2, heat-controller-3, heat-compute-1, heat-compute-2 ]
+    depends_on: [ controller2, controller3, compute1, compute2 ]
     properties:
       image: { get_param: image }
       flavor: { get_param: flavor }
       key_name: { get_param: key_name }
-      name: heat-controller-1
+      name:
+        str_replace:
+          template: "%%CLUSTER_PREFIX%%-controller-1"
+          params:
+            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
       networks:
         - uuid: 00000000-0000-0000-0000-000000000000
         - uuid: 11111111-1111-1111-1111-111111111111
@@ -64,19 +74,24 @@ resources:
         str_replace:
           template: { get_file: config_controller_primary.sh }
           params:
-            __ID__: "1"
-            __VERSION__: { get_param: version }
-            __EXTERNAL_VIP_IP__: { get_attr: [heat-controller-3, accessIPv4] }
-            __PRIVATE_KEY__: { get_file: id_rsa }
-            __PUBLIC_KEY__: { get_file: id_rsa.pub }
+            "%%ID%%": "1"
+            "%%RPC_VERSION%%": { get_param: version }
+            "%%EXTERNAL_VIP_IP%%": { get_attr: [controller3, accessIPv4] }
+            "%%PRIVATE_KEY%%": { get_file: id_rsa }
+            "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
+            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
 
-  heat-controller-2:
+  controller2:
     type: "Rackspace::Cloud::Server"
     properties:
       image: { get_param: image }
       flavor: { get_param: flavor }
       key_name: { get_param: key_name }
-      name: heat-controller-2
+      name:
+        str_replace:
+          template: "%%CLUSTER_PREFIX%%-controller-2"
+          params:
+            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
       networks:
         - uuid: 00000000-0000-0000-0000-000000000000
         - uuid: 11111111-1111-1111-1111-111111111111
@@ -87,17 +102,22 @@ resources:
         str_replace:
           template: { get_file: config_controller_other.sh }
           params:
-            __ID__: "2"
-            __VERSION__: { get_param: version }
-            __PUBLIC_KEY__: { get_file: id_rsa.pub }
+            "%%ID%%": "2"
+            "%%RPC_VERSION%%": { get_param: version }
+            "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
+            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
 
-  heat-controller-3:
+  controller3:
     type: "Rackspace::Cloud::Server"
     properties:
       image: { get_param: image }
       flavor: { get_param: flavor }
       key_name: { get_param: key_name }
-      name: heat-controller-3
+      name:
+        str_replace:
+          template: "%%CLUSTER_PREFIX%%-controller-3"
+          params:
+            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
       networks:
         - uuid: 00000000-0000-0000-0000-000000000000
         - uuid: 11111111-1111-1111-1111-111111111111
@@ -108,17 +128,22 @@ resources:
         str_replace:
           template: { get_file: config_controller_other.sh }
           params:
-            __ID__: "3"
-            __VERSION__: { get_param: version }
-            __PUBLIC_KEY__: { get_file: id_rsa.pub }
+            "%%ID%%": "3"
+            "%%RPC_VERSION%%": { get_param: version }
+            "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
+            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
 
-  heat-compute-1:
+  compute1:
     type: "Rackspace::Cloud::Server"
     properties:
       image: { get_param: image }
       flavor: { get_param: flavor }
       key_name: { get_param: key_name }
-      name: heat-compute-1
+      name:
+        str_replace:
+          template: "%%CLUSTER_PREFIX%%-compute-1"
+          params:
+            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
       networks:
         - uuid: 00000000-0000-0000-0000-000000000000
         - uuid: 11111111-1111-1111-1111-111111111111
@@ -129,17 +154,22 @@ resources:
         str_replace:
           template: { get_file: config_compute_all.sh }
           params:
-            __ID__: "4"
-            __VERSION__: { get_param: version }
-            __PUBLIC_KEY__: { get_file: id_rsa.pub }
+            "%%ID%%": "4"
+            "%%RPC_VERSION%%": { get_param: version }
+            "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
+            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
 
-  heat-compute-2:
+  compute2:
     type: "Rackspace::Cloud::Server"
     properties:
       image: { get_param: image }
       flavor: { get_param: flavor }
       key_name: { get_param: key_name }
-      name: heat-compute-2
+      name:
+        str_replace:
+          template: "%%CLUSTER_PREFIX%%-compute-2"
+          params:
+            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
       networks:
         - uuid: 00000000-0000-0000-0000-000000000000
         - uuid: 11111111-1111-1111-1111-111111111111
@@ -150,6 +180,24 @@ resources:
         str_replace:
           template: { get_file: config_compute_all.sh }
           params:
-            __ID__: "5"
-            __VERSION__: { get_param: version }
-            __PUBLIC_KEY__: { get_file: id_rsa.pub }
+            "%%ID%%": "5"
+            "%%RPC_VERSION%%": { get_param: version }
+            "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
+            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
+
+outputs:
+  controller1_ip:
+    description: The IP address of controller1
+    value: { get_attr: [controller1, accessIPv4] }
+  controller2_ip:
+    description: The IP address of controller2
+    value: { get_attr: [controller2, accessIPv4] }
+  controller3_ip:
+    description: The IP address of controller3
+    value: { get_attr: [controller3, accessIPv4] }
+  heat-compute-1_ip:
+    description: The IP address of compute1
+    value: { get_attr: [compute1, accessIPv4] }
+  compute2_ip:
+    description: The IP address of compute2
+    value: { get_attr: [compute2, accessIPv4] }

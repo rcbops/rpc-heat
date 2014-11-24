@@ -15,11 +15,11 @@ apt-get install -y bridge-utils git
 
 cat > /etc/hosts << "EOF"
 127.0.0.1 localhost
-172.29.236.1 %%CLUSTER_PREFIX%%-controller-1
-172.29.236.2 %%CLUSTER_PREFIX%%-controller-2
-172.29.236.3 %%CLUSTER_PREFIX%%-controller-3
-172.29.236.4 %%CLUSTER_PREFIX%%-compute-1
-172.29.236.5 %%CLUSTER_PREFIX%%-compute-2
+172.29.236.1 %%CLUSTER_PREFIX%%-node1
+172.29.236.2 %%CLUSTER_PREFIX%%-node2
+172.29.236.3 %%CLUSTER_PREFIX%%-node3
+172.29.236.4 %%CLUSTER_PREFIX%%-node4
+172.29.236.5 %%CLUSTER_PREFIX%%-node5
 EOF
 
 cd /root

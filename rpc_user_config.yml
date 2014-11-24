@@ -106,23 +106,23 @@ global_overrides:
 
 # User defined Infrastructure Hosts, this should be a required group
 infra_hosts:
-  __CLUSTER_PREFIX__-controller-1:
+  __CLUSTER_PREFIX__-node1:
     ip: 172.29.236.1
-  __CLUSTER_PREFIX__-controller-2:
+  __CLUSTER_PREFIX__-node2:
     ip: 172.29.236.2
-  __CLUSTER_PREFIX__-controller-3:
+  __CLUSTER_PREFIX__-node3:
     ip: 172.29.236.3
 
 # User defined Compute Hosts, this should be a required group
 compute_hosts:
-  __CLUSTER_PREFIX__-compute-1:
+  __CLUSTER_PREFIX__-node4:
     ip: 172.29.236.4
-  __CLUSTER_PREFIX__-compute-2:
+  __CLUSTER_PREFIX__-node5:
     ip: 172.29.236.5
 
 # User defined Storage Hosts, this should be a required group
 storage_hosts:
-  __CLUSTER_PREFIX__-compute-1:
+  __CLUSTER_PREFIX__-node4:
     ip: 172.29.236.4
     # "container_vars" can be set outside of all other options as
     # host specific optional variables.
@@ -144,14 +144,14 @@ storage_hosts:
 
 # User defined Logging Hosts, this should be a required group
 log_hosts:
-  __CLUSTER_PREFIX__-controller-1:
+  __CLUSTER_PREFIX__-node1:
     ip: 172.29.236.1
 
 # User defined Networking Hosts, this should be a required group
 network_hosts:
-  __CLUSTER_PREFIX__-controller-2:
+  __CLUSTER_PREFIX__-node2:
     ip: 172.29.236.2
 
 haproxy_hosts:
-  __CLUSTER_PREFIX__-controller-3:
+  __CLUSTER_PREFIX__-node3:
     ip: 172.29.236.3

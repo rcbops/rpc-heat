@@ -30,6 +30,10 @@ parameters:
     label: Cluster prefix
     description: Prefix to use when building cluster
     default: heat
+    constraints:
+      # The recommended hostname length should be less than 20 chars, we tack
+      # on -nodeX which adds up to another 5 chars, hence max being 14.
+      - length: { min: 1, max: 14 }
 
 resources:
   heat_mgmt_vxlan:
@@ -61,7 +65,7 @@ resources:
       key_name: { get_param: key_name }
       name:
         str_replace:
-          template: "%%CLUSTER_PREFIX%%-controller-1"
+          template: "%%CLUSTER_PREFIX%%-node1"
           params:
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
       networks:
@@ -89,7 +93,7 @@ resources:
       key_name: { get_param: key_name }
       name:
         str_replace:
-          template: "%%CLUSTER_PREFIX%%-controller-2"
+          template: "%%CLUSTER_PREFIX%%-node2"
           params:
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
       networks:
@@ -115,7 +119,7 @@ resources:
       key_name: { get_param: key_name }
       name:
         str_replace:
-          template: "%%CLUSTER_PREFIX%%-controller-3"
+          template: "%%CLUSTER_PREFIX%%-node3"
           params:
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
       networks:
@@ -141,7 +145,7 @@ resources:
       key_name: { get_param: key_name }
       name:
         str_replace:
-          template: "%%CLUSTER_PREFIX%%-compute-1"
+          template: "%%CLUSTER_PREFIX%%-node4"
           params:
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
       networks:
@@ -167,7 +171,7 @@ resources:
       key_name: { get_param: key_name }
       name:
         str_replace:
-          template: "%%CLUSTER_PREFIX%%-compute-2"
+          template: "%%CLUSTER_PREFIX%%-node5"
           params:
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
       networks:

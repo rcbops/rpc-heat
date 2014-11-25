@@ -2,16 +2,17 @@
 
 set -e
 
-INTERFACES="/etc/network/interfaces"
-INTERFACES_D="/etc/network/interfaces.d"
-EXTERNAL_VIP_IP="%%EXTERNAL_VIP_IP%%"
+ANSIBLE_PLAYBOOKS="%%ANSIBLE_PLAYBOOKS%%"
 CLUSTER_PREFIX="%%CLUSTER_PREFIX%%"
-
+EXTERNAL_VIP_IP="%%EXTERNAL_VIP_IP%%"
 PUBLIC_KEY="%%PUBLIC_KEY%%"
 PRIVATE_KEY="%%PRIVATE_KEY%%"
 
+INTERFACES="/etc/network/interfaces"
+INTERFACES_D="/etc/network/interfaces.d"
+
 apt-get update
-apt-get install -y bridge-utils git
+apt-get install -y bridge-utils git vim
 
 cat > /etc/hosts << "EOF"
 127.0.0.1 localhost

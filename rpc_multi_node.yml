@@ -35,6 +35,14 @@ parameters:
       # on -nodeX which adds up to another 5 chars, hence max being 14.
       - length: { min: 1, max: 14 }
 
+  ansible_playbooks:
+    type: string
+    label: Ansible playbooks
+    description: Ansible playbooks to run (all => all, minimal => (all - logging/support playbooks)
+    default: all
+    constraints:
+      - allowed_values: [ all, minimal ]
+
 resources:
   heat_mgmt_vxlan:
     type: Rackspace::Cloud::Network
@@ -84,6 +92,7 @@ resources:
             "%%PRIVATE_KEY%%": { get_file: id_rsa }
             "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
+            "%%ANSIBLE_PLAYBOOKS%%": { get_param: ansible_playbooks }
 
   controller2:
     type: "Rackspace::Cloud::Server"

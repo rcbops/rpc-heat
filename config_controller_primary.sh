@@ -141,7 +141,7 @@ echo "$PRIVATE_KEY" > .ssh/id_rsa
 chmod 600 .ssh/*
 
 cd /root
-git clone -b %%RPC_VERSION%% https://github.com/rcbops/ansible-lxc-rpc.git
+git clone -b %%RPC_VERSION%% %%GIT_REPO%%
 cd ansible-lxc-rpc
 pip install -r requirements.txt
 cp -a etc/rpc_deploy /etc/

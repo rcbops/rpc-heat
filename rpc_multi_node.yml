@@ -19,7 +19,13 @@ parameters:
     description: Name of key-pair to be used for compute instance
     default: default
 
-  version:
+  git_repo:
+    type: string
+    label: RPC git repo
+    description: URL of RPC git repo to clone
+    default: https://github.com/rcbops/ansible-lxc-rpc.git
+
+  rpc_version:
     type: string
     label: RPC version
     description: RPC version to install
@@ -87,12 +93,13 @@ resources:
           template: { get_file: config_controller_primary.sh }
           params:
             "%%ID%%": "1"
-            "%%RPC_VERSION%%": { get_param: version }
+            "%%RPC_VERSION%%": { get_param: rpc_version }
             "%%EXTERNAL_VIP_IP%%": { get_attr: [controller3, accessIPv4] }
             "%%PRIVATE_KEY%%": { get_file: id_rsa }
             "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
             "%%ANSIBLE_PLAYBOOKS%%": { get_param: ansible_playbooks }
+            "%%GIT_REPO%%": { get_param: git_repo }
 
   controller2:
     type: "Rackspace::Cloud::Server"
@@ -116,7 +123,6 @@ resources:
           template: { get_file: config_controller_other.sh }
           params:
             "%%ID%%": "2"
-            "%%RPC_VERSION%%": { get_param: version }
             "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
 
@@ -142,7 +148,6 @@ resources:
           template: { get_file: config_controller_other.sh }
           params:
             "%%ID%%": "3"
-            "%%RPC_VERSION%%": { get_param: version }
             "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
 
@@ -168,7 +173,6 @@ resources:
           template: { get_file: config_compute_all.sh }
           params:
             "%%ID%%": "4"
-            "%%RPC_VERSION%%": { get_param: version }
             "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
 
@@ -194,7 +198,6 @@ resources:
           template: { get_file: config_compute_all.sh }
           params:
             "%%ID%%": "5"
-            "%%RPC_VERSION%%": { get_param: version }
             "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
 

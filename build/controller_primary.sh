@@ -1,7 +1,7 @@
 rpc_user_config="/etc/rpc_deploy/rpc_user_config.yml"
 user_variables="/etc/rpc_deploy/user_variables.yml"
 
-echo "$PRIVATE_KEY" > .ssh/id_rsa
+echo -n "%%PRIVATE_KEY%%" > .ssh/id_rsa
 chmod 600 .ssh/*
 
 cd /root
@@ -22,13 +22,13 @@ environment_version=$(md5sum /etc/rpc_deploy/rpc_environment.yml | awk '{print $
 
 curl -o $rpc_user_config https://raw.githubusercontent.com/mattt416/rpc_heat/master/rpc_user_config.yml
 sed -i "s/__ENVIRONMENT_VERSION__/$environment_version/g" $rpc_user_config
-sed -i "s/__EXTERNAL_VIP_IP__/$EXTERNAL_VIP_IP/g" $rpc_user_config
-sed -i "s/__CLUSTER_PREFIX__/$CLUSTER_PREFIX/g" $rpc_user_config
+sed -i "s/__EXTERNAL_VIP_IP__/%%EXTERNAL_VIP_IP%%/g" $rpc_user_config
+sed -i "s/__CLUSTER_PREFIX__/%%CLUSTER_PREFIX%%/g" $rpc_user_config
 
 cd rpc_deployment
 ansible-playbook -e @${user_variables} playbooks/setup/host-setup.yml
 ansible-playbook -e @${user_variables} playbooks/infrastructure/haproxy-install.yml
-if [ "$PLAYBOOKS" = "all" ]; then
+if [ "$ANSIBLE_PLAYBOOKS" = "all" ]; then
   ansible-playbook -e @${user_variables} playbooks/infrastructure/infrastructure-setup.yml \
                                          playbooks/openstack/openstack-setup.yml
 else

@@ -3,10 +3,6 @@
 set -e
 
 ANSIBLE_PLAYBOOKS="%%ANSIBLE_PLAYBOOKS%%"
-CLUSTER_PREFIX="%%CLUSTER_PREFIX%%"
-EXTERNAL_VIP_IP="%%EXTERNAL_VIP_IP%%"
-PUBLIC_KEY="%%PUBLIC_KEY%%"
-PRIVATE_KEY="%%PRIVATE_KEY%%"
 
 INTERFACES="/etc/network/interfaces"
 INTERFACES_D="/etc/network/interfaces.d"
@@ -24,8 +20,8 @@ cat > /etc/hosts << "EOF"
 EOF
 
 cd /root
-echo $PUBLIC_KEY > .ssh/id_rsa.pub
-echo $PUBLIC_KEY >> .ssh/authorized_keys
+echo -n "%%PUBLIC_KEY%%" > .ssh/id_rsa.pub
+echo -n "%%PUBLIC_KEY%%" >> .ssh/authorized_keys
 chmod 600 .ssh/*
 
 found=0

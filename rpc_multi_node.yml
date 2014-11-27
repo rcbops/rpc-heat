@@ -49,6 +49,36 @@ parameters:
     constraints:
       - allowed_values: [ all, minimal ]
 
+  rackspace_cloud_api_key:
+    type: string
+    label: API Key
+    description: Rackspace Cloud API Key
+    default: SomeAPIKey
+
+  rackspace_cloud_auth_url:
+    type: string
+    label: Auth URL
+    description: Rackspace Cloud Auth URL
+    default: https://identity.api.rackspacecloud.com/v2.0
+
+  rackspace_cloud_password:
+    type: string
+    label: Password
+    description: Rackspace Cloud Password
+    default: SomeUsersPassword
+
+  rackspace_cloud_tenant_id:
+    type: string
+    label: Tenant ID
+    description: Rackspace Cloud Tenant ID
+    default: SomeTenantID
+
+  rackspace_cloud_username:
+    type: string
+    label: Username
+    description: Rackspace Cloud Username
+    default: SomeUserName
+
 resources:
   heat_mgmt_vxlan:
     type: Rackspace::Cloud::Network
@@ -100,6 +130,11 @@ resources:
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
             "%%ANSIBLE_PLAYBOOKS%%": { get_param: ansible_playbooks }
             "%%GIT_REPO%%": { get_param: git_repo }
+            "%%RACKSPACE_CLOUD_API_KEY%%": { get_param: rackspace_cloud_api_key }
+            "%%RACKSPACE_CLOUD_AUTH_URL%%": { get_param: rackspace_cloud_auth_url }
+            "%%RACKSPACE_CLOUD_PASSWORD%%": { get_param: rackspace_cloud_password }
+            "%%RACKSPACE_CLOUD_TENANT_ID%%": { get_param: rackspace_cloud_tenant_id }
+            "%%RACKSPACE_CLOUD_USERNAME%%": { get_param: rackspace_cloud_username }
 
   controller2:
     type: "Rackspace::Cloud::Server"

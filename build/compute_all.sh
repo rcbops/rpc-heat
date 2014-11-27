@@ -21,3 +21,6 @@ EOF
 
 ifup -a
 
+pvcreate /dev/xvde1
+vgcreate cinder-volumes /dev/xvde1
+

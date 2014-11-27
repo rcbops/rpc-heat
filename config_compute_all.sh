@@ -12,7 +12,7 @@ INTERFACES="/etc/network/interfaces"
 INTERFACES_D="/etc/network/interfaces.d"
 
 apt-get update
-apt-get install -y bridge-utils git vim
+apt-get install -y bridge-utils git lvm2 vim
 
 cat > /etc/hosts << "EOF"
 127.0.0.1 localhost
@@ -138,4 +138,7 @@ iface br-vxlan inet static
 EOF
 
 ifup -a
+
+pvcreate /dev/xvde1
+vgcreate cinder-volumes /dev/xvde1
 

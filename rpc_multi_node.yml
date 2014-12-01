@@ -87,6 +87,14 @@ parameters:
     constraints:
       - allowed_values: [ swift, file ]
 
+  glance_swift_store_region:
+    type: string
+    label: Glance Swift Store Region
+    description: The swift region to store glance images in
+    default: LON
+    constraints:
+      - allowed_values: [ DFW, HKG, IAD, LON, ORD, SYD ]
+
 resources:
   heat_mgmt_vxlan:
     type: Rackspace::Cloud::Network
@@ -144,6 +152,7 @@ resources:
             "%%RACKSPACE_CLOUD_TENANT_ID%%": { get_param: rackspace_cloud_tenant_id }
             "%%RACKSPACE_CLOUD_USERNAME%%": { get_param: rackspace_cloud_username }
             "%%GLANCE_DEFAULT_STORE%%": { get_param: glance_default_store }
+            "%%GLANCE_SWIFT_STORE_REGION%%": { get_param: glance_swift_store_region }
 
   controller2:
     type: "Rackspace::Cloud::Server"

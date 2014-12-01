@@ -2,23 +2,6 @@
 
 set -e
 
-function retry()
-{
-  local n=1
-  local try=$1
-  local cmd="${@: 2}"
-
-  until [[ $n -gt $try ]]
-  do
-    echo "attempt number $n:"
-    $cmd && break || {
-      echo "Command Failed..."
-      ((n++))
-      sleep 1;
-    }
-  done
-}
-
 ANSIBLE_PLAYBOOKS="%%ANSIBLE_PLAYBOOKS%%"
 
 INTERFACES="/etc/network/interfaces"
@@ -170,6 +153,7 @@ sed -i "s/\(rackspace_cloud_username\): .*/\1: %%RACKSPACE_CLOUD_USERNAME%%/g" $
 sed -i "s/\(rackspace_cloud_password\): .*/\1: %%RACKSPACE_CLOUD_PASSWORD%%/g" $user_variables
 sed -i "s/\(rackspace_cloud_api_key\): .*/\1: %%RACKSPACE_CLOUD_API_KEY%%/g" $user_variables
 sed -i "s/\(glance_default_store\): .*/\1: %%GLANCE_DEFAULT_STORE%%/g" $user_variables
+sed -i "s/\(glance_swift_store_region\): .*/\1: %%GLANCE_SWIFT_STORE_REGION%%/g" $user_variables
 
 environment_version=$(md5sum /etc/rpc_deploy/rpc_environment.yml | awk '{print $1}')
 
@@ -179,16 +163,16 @@ sed -i "s/__EXTERNAL_VIP_IP__/%%EXTERNAL_VIP_IP%%/g" $rpc_user_config
 sed -i "s/__CLUSTER_PREFIX__/%%CLUSTER_PREFIX%%/g" $rpc_user_config
 
 cd rpc_deployment
-retry 3 ansible-playbook -e @${user_variables} playbooks/setup/host-setup.yml
-retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/haproxy-install.yml
+ansible-playbook -e @${user_variables} playbooks/setup/host-setup.yml
+ansible-playbook -e @${user_variables} playbooks/infrastructure/haproxy-install.yml
 if [ "$ANSIBLE_PLAYBOOKS" = "all" ]; then
-  retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/infrastructure-setup.yml \
+  ansible-playbook -e @${user_variables} playbooks/infrastructure/infrastructure-setup.yml \
                                          playbooks/openstack/openstack-setup.yml
 else
-  retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/memcached-install.yml \
+  ansible-playbook -e @${user_variables} playbooks/infrastructure/memcached-install.yml \
                                          playbooks/infrastructure/galera-install.yml \
                                          playbooks/infrastructure/rabbit-install.yml
-  retry 3 ansible-playbook -e @${user_variables} playbooks/openstack/keystone-all.yml \
+  ansible-playbook -e @${user_variables} playbooks/openstack/keystone-all.yml \
                                          playbooks/openstack/glance-all.yml \
                                          playbooks/openstack/heat-all.yml \
                                          playbooks/openstack/nova-all.yml \

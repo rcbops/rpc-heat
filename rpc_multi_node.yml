@@ -23,7 +23,7 @@ parameters:
     type: string
     label: RPC git repo
     description: URL of RPC git repo to clone
-    default: https://github.com/rcbops/ansible-lxc-rpc.git
+    default: https://github.com/stackforge/os-ansible-deployment.git
 
   rpc_version:
     type: string

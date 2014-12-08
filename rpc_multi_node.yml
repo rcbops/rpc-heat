@@ -66,6 +66,7 @@ parameters:
     label: Rackspace Cloud Password
     description: Rackspace Cloud Password
     default: SomeUsersPassword
+    hidden: True
 
   rackspace_cloud_tenant_id:
     type: string
@@ -264,7 +265,7 @@ outputs:
   controller3_ip:
     description: The IP address of controller3
     value: { get_attr: [controller3, accessIPv4] }
-  heat-compute-1_ip:
+  compute1_ip:
     description: The IP address of compute1
     value: { get_attr: [compute1, accessIPv4] }
   compute2_ip:

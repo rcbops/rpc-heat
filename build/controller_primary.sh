@@ -28,21 +28,21 @@ sed -i "s/__EXTERNAL_VIP_IP__/%%EXTERNAL_VIP_IP%%/g" $rpc_user_config
 sed -i "s/__CLUSTER_PREFIX__/%%CLUSTER_PREFIX%%/g" $rpc_user_config
 
 cd rpc_deployment
-ansible-playbook -e @${user_variables} playbooks/setup/host-setup.yml
-ansible-playbook -e @${user_variables} playbooks/infrastructure/haproxy-install.yml
+retry 3 ansible-playbook -e @${user_variables} playbooks/setup/host-setup.yml
+retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/haproxy-install.yml
 if [ "$ANSIBLE_PLAYBOOKS" = "all" ]; then
-  ansible-playbook -e @${user_variables} playbooks/infrastructure/infrastructure-setup.yml \
-                                         playbooks/openstack/openstack-setup.yml
+  retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/infrastructure-setup.yml \
+                                                 playbooks/openstack/openstack-setup.yml
 else
-  ansible-playbook -e @${user_variables} playbooks/infrastructure/memcached-install.yml \
-                                         playbooks/infrastructure/galera-install.yml \
-                                         playbooks/infrastructure/rabbit-install.yml
-  ansible-playbook -e @${user_variables} playbooks/openstack/keystone-all.yml \
-                                         playbooks/openstack/glance-all.yml \
-                                         playbooks/openstack/heat-all.yml \
-                                         playbooks/openstack/nova-all.yml \
-                                         playbooks/openstack/neutron-all.yml \
-                                         playbooks/openstack/cinder-all.yml \
-                                         playbooks/openstack/horizon-all.yml \
-                                         playbooks/openstack/utility-all.yml
+  retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/memcached-install.yml \
+                                                 playbooks/infrastructure/galera-install.yml \
+                                                 playbooks/infrastructure/rabbit-install.yml
+  retry 3 ansible-playbook -e @${user_variables} playbooks/openstack/keystone-all.yml \
+                                                 playbooks/openstack/glance-all.yml \
+                                                 playbooks/openstack/heat-all.yml \
+                                                 playbooks/openstack/nova-all.yml \
+                                                 playbooks/openstack/neutron-all.yml \
+                                                 playbooks/openstack/cinder-all.yml \
+                                                 playbooks/openstack/horizon-all.yml \
+                                                 playbooks/openstack/utility-all.yml
 fi

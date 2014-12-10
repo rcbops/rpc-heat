@@ -110,15 +110,23 @@ EOF
 
 cat > ${INTERFACES_D}/eth4.cfg << "EOF"
 auto eth4
-iface eth4 inet static
-    address 172.29.244.%%ID%%
-    netmask 255.255.252.0
+iface eth4 inet manual
+EOF
+
+cat > ${INTERFACES_D}/vxlan4.cfg << "EOF"
+auto vxlan4
+iface vxlan4 inet manual
+        pre-up ip link add vxlan4 type vxlan id 3 group 239.0.0.16 ttl 4 dev eth4
+        up ip link set vxlan4 up
+        down ip link set vxlan4 down
 EOF
 
 cat > ${INTERFACES_D}/br-storage.cfg << "EOF"
 auto br-storage
-iface br-storage inet manual
-    bridge_ports eth4
+iface br-storage inet static
+    address 172.29.244.%%ID%%
+    netmask 255.255.252.0
+    bridge_ports vxlan4
 EOF
 
 cat > ${INTERFACES_D}/br-vlan.cfg << "EOF"

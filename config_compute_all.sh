@@ -116,7 +116,7 @@ EOF
 cat > ${INTERFACES_D}/vxlan4.cfg << "EOF"
 auto vxlan4
 iface vxlan4 inet manual
-        pre-up ip link add vxlan4 type vxlan id 3 group 239.0.0.16 ttl 4 dev eth4
+        pre-up ip link add vxlan4 type vxlan id 4 group 239.0.0.16 ttl 4 dev eth4
         up ip link set vxlan4 up
         down ip link set vxlan4 down
 EOF

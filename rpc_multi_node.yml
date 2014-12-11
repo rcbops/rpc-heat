@@ -100,7 +100,7 @@ resources:
   heat_mgmt_vxlan:
     type: Rackspace::Cloud::Network
     properties:
-      cidr: 172.29.232.0/22
+      cidr: 172.29.236.0/22
       label: heat_mgmt_vxlan
 
   heat_tunnel:
@@ -112,7 +112,7 @@ resources:
   heat_storage:
     type: Rackspace::Cloud::Network
     properties:
-      cidr: 172.29.244.0/22
+      cidr: 172.29.228.0/22
       label: heat_storage
 
   controller1:

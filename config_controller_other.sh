@@ -110,7 +110,9 @@ EOF
 
 cat > ${INTERFACES_D}/eth4.cfg << "EOF"
 auto eth4
-iface eth4 inet manual
+iface eth4 inet static
+    address 172.29.228.%%ID%%
+    netmask 255.255.252.0
 EOF
 
 cat > ${INTERFACES_D}/vxlan4.cfg << "EOF"

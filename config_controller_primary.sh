@@ -19,13 +19,16 @@ function retry()
   done
 }
 
+export HOME=${HOME:-"/root"}
+
 ANSIBLE_PLAYBOOKS="%%ANSIBLE_PLAYBOOKS%%"
 
 INTERFACES="/etc/network/interfaces"
 INTERFACES_D="/etc/network/interfaces.d"
 
+
 apt-get update
-apt-get install -y bridge-utils git lvm2 vim
+apt-get install -y python-dev python-pip bridge-utils git lvm2 vim
 
 cat > /etc/hosts << "EOF"
 127.0.0.1 localhost

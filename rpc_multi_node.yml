@@ -116,7 +116,7 @@ resources:
       label: heat_storage
 
   controller1:
-    type: "Rackspace::Cloud::Server"
+    type: "OS::Nova::Server"
     # Don't build controller1 until the others are up as the ansible run
     # will fail if they are down.
     depends_on: [ controller2, controller3, compute1, compute2 ]
@@ -135,6 +135,8 @@ resources:
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
+      config_drive: True
+      user_data_format: RAW
       user_data:
         str_replace:
           template: { get_file: config_controller_primary.sh }
@@ -156,7 +158,7 @@ resources:
             "%%GLANCE_SWIFT_STORE_REGION%%": { get_param: glance_swift_store_region }
 
   controller2:
-    type: "Rackspace::Cloud::Server"
+    type: "OS::Nova::Server"
     properties:
       image: { get_param: image }
       flavor: { get_param: flavor }
@@ -172,6 +174,8 @@ resources:
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
+      config_drive: True
+      user_data_format: RAW
       user_data:
         str_replace:
           template: { get_file: config_controller_other.sh }
@@ -181,7 +185,7 @@ resources:
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
 
   controller3:
-    type: "Rackspace::Cloud::Server"
+    type: "OS::Nova::Server"
     properties:
       image: { get_param: image }
       flavor: { get_param: flavor }
@@ -197,6 +201,8 @@ resources:
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
+      config_drive: True
+      user_data_format: RAW
       user_data:
         str_replace:
           template: { get_file: config_controller_other.sh }
@@ -206,7 +212,7 @@ resources:
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
 
   compute1:
-    type: "Rackspace::Cloud::Server"
+    type: "OS::Nova::Server"
     properties:
       image: { get_param: image }
       flavor: { get_param: flavor }
@@ -222,6 +228,8 @@ resources:
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
+      config_drive: True
+      user_data_format: RAW
       user_data:
         str_replace:
           template: { get_file: config_compute_all.sh }
@@ -231,7 +239,7 @@ resources:
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
 
   compute2:
-    type: "Rackspace::Cloud::Server"
+    type: "OS::Nova::Server"
     properties:
       image: { get_param: image }
       flavor: { get_param: flavor }
@@ -247,6 +255,8 @@ resources:
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
+      config_drive: True
+      user_data_format: RAW
       user_data:
         str_replace:
           template: { get_file: config_compute_all.sh }

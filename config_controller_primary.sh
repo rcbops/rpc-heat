@@ -177,10 +177,6 @@ cp -a etc/rpc_deploy /etc/
 
 scripts/pw-token-gen.py --file $user_variables
 echo "nova_virt_type: qemu" >> $user_variables
-cat >> $user_variables << "EOF"
-apt_common_repos:
-  - { repo: "deb http://lon1.mirrors.digitalocean.com/mariadb/repo/5.5/ubuntu {{ ansible_distribution_release }} main", state: "present" }
-EOF
 
 sed -i "s#\(rackspace_cloud_auth_url\): .*#\1: %%RACKSPACE_CLOUD_AUTH_URL%%#g" $user_variables
 sed -i "s/\(rackspace_cloud_tenant_id\): .*/\1: %%RACKSPACE_CLOUD_TENANT_ID%%/g" $user_variables
@@ -211,3 +207,4 @@ else
                                                  playbooks/infrastructure/rabbit-install.yml
   retry 3 ansible-playbook -e @${user_variables} playbooks/openstack/openstack-setup-no-logging.yml
 fi
+%%CURL_CLI%% --data-binary '{"status": "SUCCESS"}'

@@ -163,3 +163,4 @@ EOF
 
 ifup -a
 
+%%CURL_CLI%% --data-binary '{"status": "SUCCESS"}'

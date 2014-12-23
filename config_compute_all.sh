@@ -168,3 +168,4 @@ ifup -a
 pvcreate /dev/xvde1
 vgcreate cinder-volumes /dev/xvde1
 
+%%CURL_CLI%% --data-binary '{"status": "SUCCESS"}'

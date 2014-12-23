@@ -105,7 +105,7 @@ resources:
     properties:
       handle: { get_resource: dependent_wait_handle }
       count: 4
-      timeout: 2700
+      timeout: 1800
 
   dependent_wait_handle:
     type: "OS::Heat::SwiftSignalHandle"
@@ -240,60 +240,30 @@ resources:
             "%%CURL_CLI%%": { get_attr: ['dependent_wait_handle', 'curl_cli'] }
 
   compute1:
-    type: "OS::Nova::Server"
+    type: lib/compute.yaml
     properties:
+      node_id: 4
+      wait_handle: { get_attr: ['dependent_wait_handle', 'curl_cli'] }
+      mgmt_vxlan_uuid: { get_resource: heat_mgmt_vxlan }
+      tunnel_uuid: { get_resource: heat_tunnel }
+      storage_uuid: { get_resource: heat_storage }
       image: { get_param: image }
       flavor: { get_param: flavor }
       key_name: { get_param: key_name }
-      name:
-        str_replace:
-          template: "%%CLUSTER_PREFIX%%-node4"
-          params:
-            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
-      networks:
-        - uuid: 00000000-0000-0000-0000-000000000000
-        - uuid: 11111111-1111-1111-1111-111111111111
-        - uuid: { get_resource: heat_mgmt_vxlan }
-        - uuid: { get_resource: heat_tunnel }
-        - uuid: { get_resource: heat_storage }
-      config_drive: True
-      user_data_format: RAW
-      user_data:
-        str_replace:
-          template: { get_file: config_compute_all.sh }
-          params:
-            "%%ID%%": "4"
-            "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
-            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
-            "%%CURL_CLI%%": { get_attr: ['dependent_wait_handle', 'curl_cli'] }
+      cluster_prefix: { get_param: cluster_prefix }
 
   compute2:
-    type: "OS::Nova::Server"
+    type: lib/compute.yaml
     properties:
+      node_id: 5
+      wait_handle: { get_attr: ['dependent_wait_handle', 'curl_cli'] }
+      mgmt_vxlan_uuid: { get_resource: heat_mgmt_vxlan }
+      tunnel_uuid: { get_resource: heat_tunnel }
+      storage_uuid: { get_resource: heat_storage }
       image: { get_param: image }
       flavor: { get_param: flavor }
       key_name: { get_param: key_name }
-      name:
-        str_replace:
-          template: "%%CLUSTER_PREFIX%%-node5"
-          params:
-            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
-      networks:
-        - uuid: 00000000-0000-0000-0000-000000000000
-        - uuid: 11111111-1111-1111-1111-111111111111
-        - uuid: { get_resource: heat_mgmt_vxlan }
-        - uuid: { get_resource: heat_tunnel }
-        - uuid: { get_resource: heat_storage }
-      config_drive: True
-      user_data_format: RAW
-      user_data:
-        str_replace:
-          template: { get_file: config_compute_all.sh }
-          params:
-            "%%ID%%": "5"
-            "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
-            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
-            "%%CURL_CLI%%": { get_attr: ['dependent_wait_handle', 'curl_cli'] }
+      cluster_prefix: { get_param: cluster_prefix }
 
 outputs:
   controller1_ip:

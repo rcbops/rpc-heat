@@ -1,0 +1,172 @@
+heat_template_version: 2013-05-23
+
+parameters:
+  node_id:
+    type: number
+    label: Node ID
+    description: Node ID
+    default: 1
+
+  wait_handle:
+    type: string
+    label: Wait handle
+    description: Wait handle
+
+  mgmt_vxlan_uuid:
+    type: string
+    label: something1
+    description: something1
+
+  tunnel_uuid:
+    type: string
+    label: something2
+    description: something2
+
+  storage_uuid:
+    type: string
+    label: something3
+    description: something3
+
+  image:
+    type: string
+    label: Image name or ID
+    description: Image to be used for compute instance
+    default: a3ba4cf5-70b9-4805-afa2-30d1ab81a625
+
+  flavor:
+    type: string
+    label: Flavor
+    description: Type of instance (flavor) to be used
+    default: performance1-8
+
+  key_name:
+    type: string
+    label: Key name
+    description: Name of key-pair to be used for compute instance
+    default: default
+
+  git_repo:
+    type: string
+    label: RPC git repo
+    description: URL of RPC git repo to clone
+    default: https://github.com/stackforge/os-ansible-deployment.git
+
+  rpc_version:
+    type: string
+    label: RPC version
+    description: RPC version to install
+    default: master
+
+  cluster_prefix:
+    type: string
+    label: Cluster prefix
+    description: Prefix to use when building cluster
+    default: heat
+    constraints:
+      # The recommended hostname length should be less than 20 chars, we tack
+      # on -nodeX which adds up to another 5 chars, hence max being 14.
+      - length: { min: 1, max: 14 }
+
+  ansible_playbooks:
+    type: string
+    label: Ansible playbooks
+    description: Ansible playbooks to run (all => all, minimal => (all - logging/support playbooks)
+    default: all
+    constraints:
+      - allowed_values: [ all, minimal ]
+
+  rackspace_cloud_api_key:
+    type: string
+    label: Rackspace Cloud API Key
+    description: Rackspace Cloud API Key
+    default: SomeAPIKey
+
+  rackspace_cloud_auth_url:
+    type: string
+    label: Rackspace Cloud Auth URL
+    description: Rackspace Cloud Auth URL
+    default: https://identity.api.rackspacecloud.com/v2.0
+
+  rackspace_cloud_password:
+    type: string
+    label: Rackspace Cloud Password
+    description: Rackspace Cloud Password
+    default: SomeUsersPassword
+    hidden: True
+
+  rackspace_cloud_tenant_id:
+    type: string
+    label: Rackspace Cloud Tenant ID
+    description: Rackspace Cloud Tenant ID
+    default: SomeTenantID
+
+  rackspace_cloud_username:
+    type: string
+    label: Rackspace Cloud Username
+    description: Rackspace Cloud Username
+    default: SomeUserName
+
+  glance_default_store:
+    type: string
+    label: Glance Default Store
+    description: The storage backend to configure glance with
+    default: swift
+    constraints:
+      - allowed_values: [ swift, file ]
+
+  glance_swift_store_region:
+    type: string
+    label: Glance Swift Store Region
+    description: The swift region to store glance images in
+    default: LON
+    constraints:
+      - allowed_values: [ DFW, HKG, IAD, LON, ORD, SYD ]
+
+resources:
+  heat_mgmt_vxlan:
+    type: Rackspace::Cloud::Network
+    properties:
+      cidr: 172.29.236.0/22
+      label: heat_mgmt_vxlan
+
+  heat_tunnel:
+    type: Rackspace::Cloud::Network
+    properties:
+      cidr: 172.29.240.0/22
+      label: heat_tunnel
+
+  heat_storage:
+    type: Rackspace::Cloud::Network
+    properties:
+      cidr: 172.29.228.0/22
+      label: heat_storage
+
+  compute_instance:
+    type: "OS::Nova::Server"
+    properties:
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      key_name: { get_param: key_name }
+      name:
+        str_replace:
+          template: "%%CLUSTER_PREFIX%%-node%%NODE_ID%%"
+          params:
+            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
+            "%%NODE_ID%%": { get_param: node_id }
+      networks:
+        - uuid: 00000000-0000-0000-0000-000000000000
+        - uuid: 11111111-1111-1111-1111-111111111111
+        - uuid: { get_param: mgmt_vxlan_uuid }
+        - uuid: { get_param: tunnel_uuid }
+        - uuid: { get_param: storage_uuid }
+
+      config_drive: True
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: { get_file: config_compute_all.sh }
+          params:
+            "%%ID%%": { get_param: node_id }
+            "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
+            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
+            "%%CURL_CLI%%": { get_param: wait_handle }

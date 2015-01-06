@@ -30,6 +30,9 @@ INTERFACES_D="/etc/network/interfaces.d"
 apt-get update
 apt-get install -y python-dev python-pip bridge-utils git lvm2 vim
 
+# Add trailing newline to file
+echo >> /etc/ssh/sshd_config
+
 cat > /etc/hosts << "EOF"
 127.0.0.1 localhost
 172.29.236.1 %%CLUSTER_PREFIX%%-node1

@@ -1,11 +1,12 @@
 rpc_user_config="/etc/rpc_deploy/rpc_user_config.yml"
+swift_config="/etc/rpc_deploy/conf.d/swift.yml"
 user_variables="/etc/rpc_deploy/user_variables.yml"
 
 echo -n "%%PRIVATE_KEY%%" > .ssh/id_rsa
 chmod 600 .ssh/*
 
 cd /root
-git clone -b %%RPC_VERSION%% %%GIT_REPO%% ansible-lxc-rpc
+git clone -b %%RPC_GIT_VERSION%% %%RPC_GIT_REPO%% ansible-lxc-rpc
 cd ansible-lxc-rpc
 pip install -r requirements.txt
 cp -a etc/rpc_deploy /etc/
@@ -23,22 +24,34 @@ sed -i "s/\(glance_swift_store_region\): .*/\1: %%GLANCE_SWIFT_STORE_REGION%%/g"
 
 environment_version=$(md5sum /etc/rpc_deploy/rpc_environment.yml | awk '{print $1}')
 
-curl -o $rpc_user_config https://raw.githubusercontent.com/mattt416/rpc_heat/master/rpc_user_config.yml
+RAW_URL=$(echo %%HEAT_GIT_REPO%% | sed -e 's/github.com/raw.githubusercontent.com/g')
+
+curl -o $rpc_user_config ${RAW_URL}/%%HEAT_GIT_VERSION%%/rpc_user_config.yml
 sed -i "s/__ENVIRONMENT_VERSION__/$environment_version/g" $rpc_user_config
 sed -i "s/__EXTERNAL_VIP_IP__/%%EXTERNAL_VIP_IP%%/g" $rpc_user_config
 sed -i "s/__CLUSTER_PREFIX__/%%CLUSTER_PREFIX%%/g" $rpc_user_config
 
+curl -o $swift_config ${RAW_URL}/%%HEAT_GIT_VERSION%%/swift.yml
+sed -i "s/__CLUSTER_PREFIX__/%%CLUSTER_PREFIX%%/g" $swift_config
+
 cd rpc_deployment
 retry 3 ansible-playbook -e @${user_variables} playbooks/setup/host-setup.yml
 retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/haproxy-install.yml
-if [ "$ANSIBLE_PLAYBOOKS" = "all" ]; then
+
+if [ "$ANSIBLE_PLAYBOOKS" = "all" ] || [ "$ANSIBLE_PLAYBOOKS" = "all+swift" ]; then
   retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/infrastructure-setup.yml \
                                                  playbooks/openstack/openstack-setup.yml
-else
+fi
+
+if [ "$ANSIBLE_PLAYBOOKS" = "minimal" ] || [ "$ANSIBLE_PLAYBOOKS" = "minimal+swift" ]; then
   egrep -v 'rpc-support-all.yml|rsyslog-config.yml' playbooks/openstack/openstack-setup.yml > \
                                                     playbooks/openstack/openstack-setup-no-logging.yml
   retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/memcached-install.yml \
                                                  playbooks/infrastructure/galera-install.yml \
                                                  playbooks/infrastructure/rabbit-install.yml
   retry 3 ansible-playbook -e @${user_variables} playbooks/openstack/openstack-setup-no-logging.yml
+fi
+
+if [ "$ANSIBLE_PLAYBOOKS" = "all+swift" ] || [ "$ANSIBLE_PLAYBOOKS" = "minimal+swift" ]; then
+  retry 3 ansible-playbook -e @${user_variables} playbooks/openstack/swift-all.yml
 fi

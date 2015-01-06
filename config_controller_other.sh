@@ -28,7 +28,7 @@ INTERFACES_D="/etc/network/interfaces.d"
 
 
 apt-get update
-apt-get install -y python-dev python-pip bridge-utils git lvm2 vim
+apt-get install -y python-dev python-pip bridge-utils git lvm2 vim xfsprogs
 
 # Add trailing newline to file
 echo >> /etc/ssh/sshd_config
@@ -165,5 +165,16 @@ iface br-vxlan inet manual
 EOF
 
 ifup -a
+
+pvcreate /dev/xvde1
+vgcreate swift /dev/xvde1
+
+for DISK in disk1 disk2 disk3; do
+  lvcreate -L 10G -n ${DISK} swift
+  echo "/dev/swift/${DISK} /srv/${DISK} xfs loop,noatime,nodiratime,nobarrier,logbufs=8 0 0" >> /etc/fstab
+  mkfs.xfs -f /dev/swift/${DISK}
+  mkdir -p /srv/${DISK}
+  mount /srv/${DISK}
+done
 
 %%CURL_CLI%% --data-binary '{"status": "SUCCESS"}'

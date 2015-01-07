@@ -28,7 +28,7 @@ INTERFACES_D="/etc/network/interfaces.d"
 
 
 apt-get update
-apt-get install -y python-dev python-pip bridge-utils git lvm2 vim
+apt-get install -y python-dev python-pip bridge-utils git lvm2 vim xfsprogs
 
 # Add trailing newline to file
 echo >> /etc/ssh/sshd_config

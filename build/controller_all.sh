@@ -19,14 +19,16 @@ EOF
 
 ifup -a
 
-pvcreate /dev/xvde1
-vgcreate swift /dev/xvde1
+if [ $SWIFT_ENABLED -eq 1 ]; then
+  pvcreate /dev/xvde1
+  vgcreate swift /dev/xvde1
 
-for DISK in disk1 disk2 disk3; do
-  lvcreate -L 10G -n ${DISK} swift
-  echo "/dev/swift/${DISK} /srv/${DISK} xfs loop,noatime,nodiratime,nobarrier,logbufs=8 0 0" >> /etc/fstab
-  mkfs.xfs -f /dev/swift/${DISK}
-  mkdir -p /srv/${DISK}
-  mount /srv/${DISK}
-done
+  for DISK in disk1 disk2 disk3; do
+    lvcreate -L 10G -n ${DISK} swift
+    echo "/dev/swift/${DISK} /srv/${DISK} xfs loop,noatime,nodiratime,nobarrier,logbufs=8 0 0" >> /etc/fstab
+    mkfs.xfs -f /dev/swift/${DISK}
+    mkdir -p /srv/${DISK}
+    mount /srv/${DISK}
+  done
+fi
 

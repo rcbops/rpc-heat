@@ -25,7 +25,11 @@ ANSIBLE_PLAYBOOKS="%%ANSIBLE_PLAYBOOKS%%"
 
 INTERFACES="/etc/network/interfaces"
 INTERFACES_D="/etc/network/interfaces.d"
+SWIFT_ENABLED=0
 
+if [ "$ANSIBLE_PLAYBOOKS" = "all+swift" ] || [ "$ANSIBLE_PLAYBOOKS" = "minimal+swift" ]; then
+  SWIFT_ENABLED=1
+fi
 
 apt-get update
 apt-get install -y python-dev python-pip bridge-utils git lvm2 vim xfsprogs

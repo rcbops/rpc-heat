@@ -25,7 +25,11 @@ ANSIBLE_PLAYBOOKS="%%ANSIBLE_PLAYBOOKS%%"
 
 INTERFACES="/etc/network/interfaces"
 INTERFACES_D="/etc/network/interfaces.d"
+SWIFT_ENABLED=0
 
+if [ "$ANSIBLE_PLAYBOOKS" = "all+swift" ] || [ "$ANSIBLE_PLAYBOOKS" = "minimal+swift" ]; then
+  SWIFT_ENABLED=1
+fi
 
 apt-get update
 apt-get install -y python-dev python-pip bridge-utils git lvm2 vim xfsprogs
@@ -166,15 +170,17 @@ EOF
 
 ifup -a
 
-pvcreate /dev/xvde1
-vgcreate swift /dev/xvde1
+if [ $SWIFT_ENABLED -eq 1 ]; then
+  pvcreate /dev/xvde1
+  vgcreate swift /dev/xvde1
 
-for DISK in disk1 disk2 disk3; do
-  lvcreate -L 10G -n ${DISK} swift
-  echo "/dev/swift/${DISK} /srv/${DISK} xfs loop,noatime,nodiratime,nobarrier,logbufs=8 0 0" >> /etc/fstab
-  mkfs.xfs -f /dev/swift/${DISK}
-  mkdir -p /srv/${DISK}
-  mount /srv/${DISK}
-done
+  for DISK in disk1 disk2 disk3; do
+    lvcreate -L 10G -n ${DISK} swift
+    echo "/dev/swift/${DISK} /srv/${DISK} xfs loop,noatime,nodiratime,nobarrier,logbufs=8 0 0" >> /etc/fstab
+    mkfs.xfs -f /dev/swift/${DISK}
+    mkdir -p /srv/${DISK}
+    mount /srv/${DISK}
+  done
+fi
 
 %%CURL_CLI%% --data-binary '{"status": "SUCCESS"}'

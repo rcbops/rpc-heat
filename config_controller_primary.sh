@@ -2,23 +2,6 @@
 
 set -e
 
-function retry()
-{
-  local n=1
-  local try=$1
-  local cmd="${@: 2}"
-
-  until [[ $n -gt $try ]]
-  do
-    echo "attempt number $n:"
-    $cmd && break || {
-      echo "Command Failed..."
-      ((n++))
-      sleep 1;
-    }
-  done
-}
-
 export HOME=${HOME:-"/root"}
 
 ANSIBLE_PLAYBOOKS="%%ANSIBLE_PLAYBOOKS%%"
@@ -236,27 +219,71 @@ if [ $SWIFT_ENABLED -eq 1 ]; then
   sed -i "s/__CLUSTER_PREFIX__/%%CLUSTER_PREFIX%%/g" $swift_config
 fi
 
+# here we create a separate script incase run_ansible paramater is false and
+# you want to re-run the correct set of playbooks at a later time
+cd rpc_deployment
+cat >> run_ansible.sh << "EOF"
+#!/bin/bash
+
+set -e
+
+function retry()
+{
+  local n=1
+  local try=$1
+  local cmd="${@: 2}"
+
+  until [[ $n -gt $try ]]
+  do
+    echo "attempt number $n:"
+    $cmd && break || {
+      echo "Command Failed..."
+      ((n++))
+      sleep 1;
+    }
+  done
+}
+
+user_variables=${user_variables:-"/etc/rpc_deploy/user_variables.yml"}
+
+timeout=$(($(date +%s) + 300))
+
+until ansible hosts -m ping > /dev/null 2>&1; do
+  if [ $(date +%s) -gt $timeout ]; then
+    echo "Timed out waiting for nodes to become accessible ..."
+    exit 1
+  fi
+done
+
+retry 3 ansible-playbook -e @${user_variables} playbooks/setup/host-setup.yml
+retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/haproxy-install.yml
+EOF
+
+if [ "$ANSIBLE_PLAYBOOKS" = "all" ] || [ "$ANSIBLE_PLAYBOOKS" = "all+swift" ]; then
+  cat >> run_ansible.sh << "EOF"
+retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/infrastructure-setup.yml \
+                                               playbooks/openstack/openstack-setup.yml
+EOF
+fi
+
+if [ "$ANSIBLE_PLAYBOOKS" = "minimal" ] || [ "$ANSIBLE_PLAYBOOKS" = "minimal+swift" ]; then
+  cat >> run_ansible.sh << "EOF"
+egrep -v 'rpc-support-all.yml|rsyslog-config.yml' playbooks/openstack/openstack-setup.yml > \
+                                                  playbooks/openstack/openstack-setup-no-logging.yml
+retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/memcached-install.yml \
+                                               playbooks/infrastructure/galera-install.yml \
+                                               playbooks/infrastructure/rabbit-install.yml
+retry 3 ansible-playbook -e @${user_variables} playbooks/openstack/openstack-setup-no-logging.yml
+EOF
+fi
+
+if [ $SWIFT_ENABLED -eq 1 ]; then
+  cat >> run_ansible.sh << "EOF"
+retry 3 ansible-playbook -e @${user_variables} playbooks/openstack/swift-all.yml
+EOF
+fi
+
 if [ $RUN_ANSIBLE -eq 1 ]; then
-  cd rpc_deployment
-  retry 3 ansible-playbook -e @${user_variables} playbooks/setup/host-setup.yml
-  retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/haproxy-install.yml
-
-  if [ "$ANSIBLE_PLAYBOOKS" = "all" ] || [ "$ANSIBLE_PLAYBOOKS" = "all+swift" ]; then
-    retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/infrastructure-setup.yml \
-                                                   playbooks/openstack/openstack-setup.yml
-  fi
-
-  if [ "$ANSIBLE_PLAYBOOKS" = "minimal" ] || [ "$ANSIBLE_PLAYBOOKS" = "minimal+swift" ]; then
-    egrep -v 'rpc-support-all.yml|rsyslog-config.yml' playbooks/openstack/openstack-setup.yml > \
-                                                      playbooks/openstack/openstack-setup-no-logging.yml
-    retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/memcached-install.yml \
-                                                   playbooks/infrastructure/galera-install.yml \
-                                                   playbooks/infrastructure/rabbit-install.yml
-    retry 3 ansible-playbook -e @${user_variables} playbooks/openstack/openstack-setup-no-logging.yml
-  fi
-
-  if [ $SWIFT_ENABLED -eq 1 ]; then
-    retry 3 ansible-playbook -e @${user_variables} playbooks/openstack/swift-all.yml
-  fi
+  bash run_ansible.sh
 fi
 %%CURL_CLI%% --data-binary '{"status": "SUCCESS"}'

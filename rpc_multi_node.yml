@@ -115,29 +115,49 @@ parameters:
       - allowed_values: [ DFW, HKG, IAD, LON, ORD, SYD ]
 
 resources:
-  # This wait condition and handle is for the 4 other nodes which the primary
-  # controller depends on.  The primary controller should not start building
-  # until these are all online and ready to roll.
-  dependent_wait:
+  controller1_wait:
     type: "OS::Heat::SwiftSignal"
     properties:
-      handle: { get_resource: dependent_wait_handle }
-      count: 4
-      timeout: 2700
-
-  dependent_wait_handle:
-    type: "OS::Heat::SwiftSignalHandle"
-
-  # This wait condition and handle is to signal the completion of the stack
-  # itself.
-  primary_controller_wait:
-    type: "OS::Heat::SwiftSignal"
-    properties:
-      handle: { get_resource: primary_controller_wait_handle }
+      handle: { get_resource: controller1_wait_handle }
       count: 1
       timeout: 5400
+  controller1_wait_handle:
+    type: "OS::Heat::SwiftSignalHandle"
 
-  primary_controller_wait_handle:
+  controller2_wait:
+    type: "OS::Heat::SwiftSignal"
+    properties:
+      handle: { get_resource: controller2_wait_handle }
+      count: 1
+      timeout: 2700
+  controller2_wait_handle:
+    type: "OS::Heat::SwiftSignalHandle"
+
+  controller3_wait:
+    type: "OS::Heat::SwiftSignal"
+    properties:
+      handle: { get_resource: controller3_wait_handle }
+      count: 1
+      timeout: 2700
+  controller3_wait_handle:
+    type: "OS::Heat::SwiftSignalHandle"
+
+  compute1_wait:
+    type: "OS::Heat::SwiftSignal"
+    properties:
+      handle: { get_resource: compute1_wait_handle }
+      count: 1
+      timeout: 2700
+  compute1_wait_handle:
+    type: "OS::Heat::SwiftSignalHandle"
+
+  compute2_wait:
+    type: "OS::Heat::SwiftSignal"
+    properties:
+      handle: { get_resource: compute2_wait_handle }
+      count: 1
+      timeout: 2700
+  compute2_wait_handle:
     type: "OS::Heat::SwiftSignalHandle"
 
   heat_mgmt_vxlan:
@@ -160,9 +180,6 @@ resources:
 
   controller1:
     type: "OS::Nova::Server"
-    # Don't build controller1 until the others are up as the ansible run
-    # will fail if they are down.
-    depends_on: dependent_wait
     properties:
       image: { get_param: image }
       flavor: { get_param: flavor }
@@ -202,7 +219,7 @@ resources:
             "%%GLANCE_DEFAULT_STORE%%": { get_param: glance_default_store }
             "%%GLANCE_SWIFT_STORE_REGION%%": { get_param: glance_swift_store_region }
             "%%RUN_ANSIBLE%%": { get_param: run_ansible }
-            "%%CURL_CLI%%": { get_attr: ['primary_controller_wait_handle', 'curl_cli'] }
+            "%%CURL_CLI%%": { get_attr: ['controller1_wait_handle', 'curl_cli'] }
 
   controller2:
     type: "OS::Nova::Server"
@@ -230,7 +247,7 @@ resources:
             "%%ID%%": "2"
             "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
-            "%%CURL_CLI%%": { get_attr: ['dependent_wait_handle', 'curl_cli'] }
+            "%%CURL_CLI%%": { get_attr: ['controller2_wait_handle', 'curl_cli'] }
 
   controller3:
     type: "OS::Nova::Server"
@@ -258,7 +275,7 @@ resources:
             "%%ID%%": "3"
             "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
-            "%%CURL_CLI%%": { get_attr: ['dependent_wait_handle', 'curl_cli'] }
+            "%%CURL_CLI%%": { get_attr: ['controller3_wait_handle', 'curl_cli'] }
 
   compute1:
     type: "OS::Nova::Server"
@@ -286,7 +303,7 @@ resources:
             "%%ID%%": "4"
             "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
-            "%%CURL_CLI%%": { get_attr: ['dependent_wait_handle', 'curl_cli'] }
+            "%%CURL_CLI%%": { get_attr: ['compute1_wait_handle', 'curl_cli'] }
 
   compute2:
     type: "OS::Nova::Server"
@@ -314,7 +331,7 @@ resources:
             "%%ID%%": "5"
             "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
-            "%%CURL_CLI%%": { get_attr: ['dependent_wait_handle', 'curl_cli'] }
+            "%%CURL_CLI%%": { get_attr: ['compute2_wait_handle', 'curl_cli'] }
 
 outputs:
   controller1_ip:

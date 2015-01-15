@@ -2,23 +2,6 @@
 
 set -e
 
-function retry()
-{
-  local n=1
-  local try=$1
-  local cmd="${@: 2}"
-
-  until [[ $n -gt $try ]]
-  do
-    echo "attempt number $n:"
-    $cmd && break || {
-      echo "Command Failed..."
-      ((n++))
-      sleep 1;
-    }
-  done
-}
-
 export HOME=${HOME:-"/root"}
 
 ANSIBLE_PLAYBOOKS="%%ANSIBLE_PLAYBOOKS%%"

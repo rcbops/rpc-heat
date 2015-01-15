@@ -23,7 +23,7 @@ parameters:
     type: string
     label: RPC git repo
     description: URL of RPC git repo to clone
-    default: https://github.com/stackforge/os-ansible-deployment.git
+    default: https://github.com/stackforge/os-ansible-deployment
 
   rpc_git_version:
     type: string
@@ -35,7 +35,7 @@ parameters:
     type: string
     label: Heat git repo
     description: URL of Heat git repo to clone
-    default: https://github.com/mattt416/rpc_heat.git
+    default: https://github.com/mattt416/rpc_heat
 
   heat_git_version:
     type: string
@@ -60,6 +60,12 @@ parameters:
     default: all
     constraints:
       - allowed_values: [ all, minimal, all+swift, minimal+swift ]
+
+  run_ansible:
+    type: boolean
+    label: Run ansible
+    description: Should ansible run as part of the heat stack create?
+    default: true
 
   rackspace_cloud_api_key:
     type: string
@@ -195,6 +201,7 @@ resources:
             "%%RACKSPACE_CLOUD_USERNAME%%": { get_param: rackspace_cloud_username }
             "%%GLANCE_DEFAULT_STORE%%": { get_param: glance_default_store }
             "%%GLANCE_SWIFT_STORE_REGION%%": { get_param: glance_swift_store_region }
+            "%%RUN_ANSIBLE%%": { get_param: run_ansible }
             "%%CURL_CLI%%": { get_attr: ['primary_controller_wait_handle', 'curl_cli'] }
 
   controller2:

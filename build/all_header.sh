@@ -31,6 +31,12 @@ if [ "$ANSIBLE_PLAYBOOKS" = "all+swift" ] || [ "$ANSIBLE_PLAYBOOKS" = "minimal+s
   SWIFT_ENABLED=1
 fi
 
+if [ "%%RUN_ANSIBLE%%" = "True" ]; then
+  RUN_ANSIBLE=1
+else
+  RUN_ANSIBLE=0
+fi
+
 apt-get update
 apt-get install -y python-dev python-pip bridge-utils git lvm2 vim xfsprogs
 

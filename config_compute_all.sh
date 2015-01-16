@@ -126,6 +126,15 @@ iface vxlan4 inet manual
         down ip link set vxlan4 down
 EOF
 
+cat > ${INTERFACES_D}/vxlan5.cfg << "EOF"
+# We don't have a dedicated network for this traffic, so we piggy-back on eth4
+auto vxlan5
+iface vxlan5 inet manual
+        pre-up ip link add vxlan5 type vxlan id 5 group 239.0.0.16 ttl 4 dev eth4
+        up ip link set vxlan5 up
+        down ip link set vxlan5 down
+EOF
+
 cat > ${INTERFACES_D}/br-storage.cfg << "EOF"
 auto br-storage
 iface br-storage inet static
@@ -137,7 +146,7 @@ EOF
 cat > ${INTERFACES_D}/br-vlan.cfg << "EOF"
 auto br-vlan
 iface br-vlan inet manual
-    bridge_ports none
+    bridge_ports vxlan5
 EOF
 
 ifup -a

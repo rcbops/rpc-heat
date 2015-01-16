@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 KEY_NAME="jenkins"
 FLAVOR="performance1-8"
 RPC_GIT_REPO="https://github.com/stackforge/os-ansible-deployment"

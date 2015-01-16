@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 source ~/.openrc
 
 ip=$(heat output-show rpc-jenkins-${BUILD_NUMBER} controller1_ip | sed -e 's/"//g')

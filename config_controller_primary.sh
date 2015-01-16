@@ -10,8 +10,12 @@ INTERFACES="/etc/network/interfaces"
 INTERFACES_D="/etc/network/interfaces.d"
 SWIFT_ENABLED=0
 
-if [ "$ANSIBLE_PLAYBOOKS" = "all+swift" ] || [ "$ANSIBLE_PLAYBOOKS" = "minimal+swift" ]; then
+if echo "$ANSIBLE_PLAYBOOKS" | grep "swift"; then
   SWIFT_ENABLED=1
+fi
+
+if echo "$ANSIBLE_PLAYBOOKS" | grep "tempest"; then
+  TEMPEST_ENABLED=1
 fi
 
 if [ "%%RUN_ANSIBLE%%" = "True" ]; then
@@ -259,14 +263,14 @@ retry 3 ansible-playbook -e @${user_variables} playbooks/setup/host-setup.yml
 retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/haproxy-install.yml
 EOF
 
-if [ "$ANSIBLE_PLAYBOOKS" = "all" ] || [ "$ANSIBLE_PLAYBOOKS" = "all+swift" ]; then
+if echo "$ANSIBLE_PLAYBOOKS" | grep "all"; then
   cat >> run_ansible.sh << "EOF"
 retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/infrastructure-setup.yml \
                                                playbooks/openstack/openstack-setup.yml
 EOF
 fi
 
-if [ "$ANSIBLE_PLAYBOOKS" = "minimal" ] || [ "$ANSIBLE_PLAYBOOKS" = "minimal+swift" ]; then
+if echo "$ANSIBLE_PLAYBOOKS" | grep "minimal"; then
   cat >> run_ansible.sh << "EOF"
 egrep -v 'rpc-support-all.yml|rsyslog-config.yml' playbooks/openstack/openstack-setup.yml > \
                                                   playbooks/openstack/openstack-setup-no-logging.yml
@@ -280,6 +284,12 @@ fi
 if [ $SWIFT_ENABLED -eq 1 ]; then
   cat >> run_ansible.sh << "EOF"
 retry 3 ansible-playbook -e @${user_variables} playbooks/openstack/swift-all.yml
+EOF
+fi
+
+if [ $TEMPEST_ENABLED -eq 1 ]; then
+  cat >> run_ansible.sh << "EOF"
+retry 3 ansible-playbook -e @${user_variables} playbooks/openstack/tempest.yml
 EOF
 fi
 

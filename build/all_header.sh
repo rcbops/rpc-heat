@@ -10,8 +10,12 @@ INTERFACES="/etc/network/interfaces"
 INTERFACES_D="/etc/network/interfaces.d"
 SWIFT_ENABLED=0
 
-if [ "$ANSIBLE_PLAYBOOKS" = "all+swift" ] || [ "$ANSIBLE_PLAYBOOKS" = "minimal+swift" ]; then
+if echo "$ANSIBLE_PLAYBOOKS" | grep "swift"; then
   SWIFT_ENABLED=1
+fi
+
+if echo "$ANSIBLE_PLAYBOOKS" | grep "tempest"; then
+  TEMPEST_ENABLED=1
 fi
 
 if [ "%%RUN_ANSIBLE%%" = "True" ]; then

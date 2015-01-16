@@ -120,7 +120,7 @@ resources:
     properties:
       handle: { get_resource: controller1_wait_handle }
       count: 1
-      timeout: 5400
+      timeout: 7200
   controller1_wait_handle:
     type: "OS::Heat::SwiftSignalHandle"
 
@@ -129,7 +129,7 @@ resources:
     properties:
       handle: { get_resource: controller2_wait_handle }
       count: 1
-      timeout: 2700
+      timeout: 900
   controller2_wait_handle:
     type: "OS::Heat::SwiftSignalHandle"
 
@@ -138,7 +138,7 @@ resources:
     properties:
       handle: { get_resource: controller3_wait_handle }
       count: 1
-      timeout: 2700
+      timeout: 900
   controller3_wait_handle:
     type: "OS::Heat::SwiftSignalHandle"
 
@@ -147,7 +147,7 @@ resources:
     properties:
       handle: { get_resource: compute1_wait_handle }
       count: 1
-      timeout: 2700
+      timeout: 900
   compute1_wait_handle:
     type: "OS::Heat::SwiftSignalHandle"
 
@@ -156,7 +156,7 @@ resources:
     properties:
       handle: { get_resource: compute2_wait_handle }
       count: 1
-      timeout: 2700
+      timeout: 900
   compute2_wait_handle:
     type: "OS::Heat::SwiftSignalHandle"
 

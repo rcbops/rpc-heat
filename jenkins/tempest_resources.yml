@@ -75,7 +75,7 @@
   neutron:
     command: create_network
     openrc_path: /root/openrc
-    net_name: private-net
+    net_name: public-net
     provider_network_type: flat
     provider_physical_network: vlan
     router_external: true

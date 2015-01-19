@@ -216,6 +216,11 @@ else
   sed -i "s/\(glance_swift_store_region\): .*/\1: %%GLANCE_SWIFT_STORE_REGION%%/g" $user_variables
 fi
 
+cat >> $user_variables << EOF
+apt_common_repos:
+  - { repo: "deb http://ftp.hosteurope.de/mirror/archive.mariadb.org/mariadb-5.5.41/repo/ubuntu/ {{ ansible_distribution_release }} main", state: "present" }
+EOF
+
 environment_version=$(md5sum /etc/rpc_deploy/rpc_environment.yml | awk '{print $1}')
 
 # if %%HEAT_GIT_REPO%% has .git at end (https://github.com/mattt416/rpc_heat.git),

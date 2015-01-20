@@ -17,3 +17,4 @@ scp -i $ssh_key $ssh_options jenkins/tempest.conf.j2 root@${ip}:${checkout}/role
 ssh -l root -i $ssh_key $ssh_options $ip "cd $checkout && bash run_ansible.sh"
 
 ssh -l root -i $ssh_key $ssh_options $ip "ifconfig br-vlan 10.1.13.1 netmask 255.255.255.0"
+ssh -l root -i $ssh_key $ssh_options $ip "mysql nova -e 'UPDATE instance_types SET root_gb=1,memory_mb=1024 WHERE flavorid=2 limit 1;'"

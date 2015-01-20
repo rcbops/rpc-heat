@@ -26,8 +26,8 @@ has_manage=false
 
 [compute]
 ssh_connect_method = fixed
-flavor_ref_alt = 3
-flavor_ref = 2
+flavor_ref_alt = 2
+flavor_ref = 1
 image_alt_ssh_user = cirros
 image_ref_alt = {{ hostvars[groups['utility_all'][0]]['glance_images']['cirros']['id'] }}
 image_ssh_user = cirros

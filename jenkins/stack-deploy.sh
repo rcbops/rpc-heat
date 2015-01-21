@@ -26,3 +26,5 @@ ssh -l root -i $ssh_key $ssh_options $ip "ifconfig br-vlan 10.1.13.1 netmask 255
 # Here we create some new flavors to use within tempest -- tempest requires flavors w/ same disk to complete the resize tests
 ssh -l root -i $ssh_key $ssh_options $ip "lxc-attach -n $(lxc-ls | grep utility) -- sh -c 'source /root/openrc && nova flavor-create tempest1 201 256 1 1'"
 ssh -l root -i $ssh_key $ssh_options $ip "lxc-attach -n $(lxc-ls | grep utility) -- sh -c 'source /root/openrc && nova flavor-create tempest2 202 512 1 1'"
+
+ssh -l root -i $ssh_key $ssh_options $ip "lxc-attach -n $(lxc-ls | grep utility) -- sh -c 'cd /opt/tempest_*/ && ./run_tempest.sh --smoke -N || true'"

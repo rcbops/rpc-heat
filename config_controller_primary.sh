@@ -304,8 +304,6 @@ fi
 if [ $TEMPEST_ENABLED -eq 1 ]; then
   cat >> run_ansible.sh << "EOF"
 retry 3 ansible-playbook -e @${user_variables} playbooks/openstack/tempest.yml
-
-lxc-attach -n $(lxc-ls | grep utility) -- sh -c 'cd /opt/tempest_*/ && ./run_tempest.sh --smoke -N || true'
 EOF
 fi
 

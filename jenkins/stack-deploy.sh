@@ -14,12 +14,12 @@ ssh -l root -i $ssh_key $ssh_options $ip "cd $checkout && curl -o library/neutro
 scp -i $ssh_key $ssh_options jenkins/tempest_resources.yml root@${ip}:${checkout}/roles/tempest_resources/tasks/main.yml
 scp -i $ssh_key $ssh_options jenkins/tempest.conf.j2 root@${ip}:${checkout}/roles/tempest/templates/tempest.conf.j2
 
-ssh -l root -i $ssh_key $ssh_options $ip "cd $checkout && bash run_ansible.sh"
-
 # Temporary work-around otherwise we hit https://bugs.launchpad.net/neutron/+bug/1382064
 # which results in tempest tests failing
 ssh -l root -i $ssh_key $ssh_options $ip "sed -i 's/api_workers = 10/api_workers = 0/' /root/ansible-lxc-rpc/rpc_deployment/roles/neutron_common/templates/neutron.conf"
 ssh -l root -i $ssh_key $ssh_options $ip "sed -i 's/rpc_workers = 5/rpc_workers = 0/' /root/ansible-lxc-rpc/rpc_deployment/roles/neutron_common/templates/neutron.conf"
+
+ssh -l root -i $ssh_key $ssh_options $ip "cd $checkout && bash run_ansible.sh"
 
 ssh -l root -i $ssh_key $ssh_options $ip "ifconfig br-vlan 10.1.13.1 netmask 255.255.255.0"
 

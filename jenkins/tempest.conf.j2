@@ -8,7 +8,7 @@ lock_path = /opt/{{ repo_path }}/locks
 
 [boto]
 ssh_user = cirros
-instance_type = m1.nano
+instance_type = tempest1
 aki_manifest = cirros-0.3.2-x86_64-vmlinuz.manifest.xml
 ami_manifest = cirros-0.3.2-x86_64-blank.img.manifest.xml
 ari_manifest = cirros-0.3.2-x86_64-initrd.manifest.xml
@@ -26,8 +26,8 @@ has_manage=false
 
 [compute]
 ssh_connect_method = floating
-flavor_ref_alt = 2
-flavor_ref = 1
+flavor_ref_alt = 202
+flavor_ref = 201
 image_alt_ssh_user = cirros
 image_ref_alt = {{ hostvars[groups['utility_all'][0]]['glance_images']['cirros']['id'] }}
 image_ssh_user = cirros
@@ -91,7 +91,7 @@ xml_api = False
 [network]
 default_network = 192.168.74.0/24
 public_router_id =
-public_network_id = {{ hostvars[groups['utility_all'][0]]['neutron_networks']['public-net']['id'] }}
+public_network_id = {{ hostvars[groups['utility_all'][0]]['neutron_networks']['public']['id'] }}
 tenant_networks_reachable = false
 api_version = 2.0
 

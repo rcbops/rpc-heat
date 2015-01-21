@@ -16,6 +16,13 @@ scp -i $ssh_key $ssh_options jenkins/tempest.conf.j2 root@${ip}:${checkout}/role
 
 ssh -l root -i $ssh_key $ssh_options $ip "cd $checkout && bash run_ansible.sh"
 
+# Temporary work-around otherwise we hit https://bugs.launchpad.net/neutron/+bug/1382064
+# which results in tempest tests failing
+ssh -l root -i $ssh_key $ssh_options $ip "sed -i 's/api_workers = 10/api_workers = 0/' /root/ansible-lxc-rpc/rpc_deployment/roles/neutron_common/templates/neutron.conf"
+ssh -l root -i $ssh_key $ssh_options $ip "sed -i 's/rpc_workers = 5/rpc_workers = 0/' /root/ansible-lxc-rpc/rpc_deployment/roles/neutron_common/templates/neutron.conf"
+
 ssh -l root -i $ssh_key $ssh_options $ip "ifconfig br-vlan 10.1.13.1 netmask 255.255.255.0"
-ssh -l root -i $ssh_key $ssh_options $ip "mysql nova -e 'UPDATE instance_types SET memory_mb=256 WHERE flavorid=1 LIMIT 1;'"
-ssh -l root -i $ssh_key $ssh_options $ip "mysql nova -e 'UPDATE instance_types SET root_gb=1,memory_mb=512 WHERE flavorid=2 LIMIT 1;'"
+
+# Here we create some new flavors to use within tempest -- tempest requires flavors w/ same disk to complete the resize tests
+ssh -l root -i $ssh_key $ssh_options $ip "lxc-attach -n $(lxc-ls | grep utility) -- sh -c 'source /root/openrc && nova flavor-create tempest1 201 256 1 1'"
+ssh -l root -i $ssh_key $ssh_options $ip "lxc-attach -n $(lxc-ls | grep utility) -- sh -c 'source /root/openrc && nova flavor-create tempest2 202 512 1 1'"

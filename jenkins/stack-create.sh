@@ -3,12 +3,12 @@
 set -e
 
 KEY_NAME="jenkins"
-FLAVOR="performance1-8"
+FLAVOR=${FLAVOR:-"performance1-8"}
 RPC_GIT_REPO="https://github.com/stackforge/os-ansible-deployment"
 RPC_GIT_VERSION="master"
 HEAT_GIT_REPO="https://github.com/mattt416/rpc_heat"
 HEAT_GIT_VERSION="master"
-CLUSTER_PREFIX="${CLUSTER_PREFIX:-$(date "+%Y%m%d%H%M")}"
+CLUSTER_PREFIX=${CLUSTER_PREFIX:-$(date "+%Y%m%d%H%M")}
 ANSIBLE_PLAYBOOKS="minimal+swift+tempest"
 RACKSPACE_CLOUD_USERNAME="$OS_USERNAME"
 RACKSPACE_CLOUD_API_KEY="$OS_API_KEY"

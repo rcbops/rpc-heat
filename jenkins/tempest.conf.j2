@@ -25,7 +25,7 @@ has_manage=false
 
 
 [compute]
-ssh_connect_method = fixed
+ssh_connect_method = floating
 flavor_ref_alt = 2
 flavor_ref = 1
 image_alt_ssh_user = cirros
@@ -38,7 +38,6 @@ network_for_ssh = private
 ssh_user = cirros
 allow_tenant_isolation = True
 build_timeout = 600
-fixed_network_name = public-net
 
 [compute-admin]
 tenant_name = {{ auth_admin_tenant }}
@@ -90,7 +89,7 @@ xml_api = False
 [negative]
 
 [network]
-default_network = 10.0.0.0/24
+default_network = 192.168.74.0/24
 public_router_id =
 public_network_id = {{ hostvars[groups['utility_all'][0]]['neutron_networks']['public-net']['id'] }}
 tenant_networks_reachable = false

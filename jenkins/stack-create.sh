@@ -2,6 +2,8 @@
 
 set -e
 
+source ~/.openrc
+
 KEY_NAME="jenkins"
 FLAVOR=${FLAVOR:-"performance1-8"}
 RPC_GIT_REPO="https://github.com/stackforge/os-ansible-deployment"
@@ -19,7 +21,6 @@ GLANCE_DEFAULT_STORE="swift"
 GLANCE_SWIFT_STORE_REGION="LON"
 RUN_ANSIBLE=${RUN_ANSIBLE:-"False"}
 
-source ~/.openrc
 
 heat stack-create -f rpc_multi_node.yml rpc-${CLUSTER_PREFIX} -P "key_name=${KEY_NAME};rpc_git_version=${RPC_GIT_VERSION};cluster_prefix=${CLUSTER_PREFIX};ansible_playbooks=${ANSIBLE_PLAYBOOKS};rackspace_cloud_username=${RACKSPACE_CLOUD_USERNAME};rackspace_cloud_api_key=${RACKSPACE_CLOUD_API_KEY};rackspace_cloud_auth_url=${RACKSPACE_CLOUD_AUTH_URL};rackspace_cloud_password=${RACKSPACE_CLOUD_PASSWORD};rackspace_cloud_tenant_id=${RACKSPACE_CLOUD_TENANT_ID};glance_default_store=${GLANCE_DEFAULT_STORE};glance_swift_store_region=${GLANCE_SWIFT_STORE_REGION};flavor=${FLAVOR};rpc_git_repo=${RPC_GIT_REPO};heat_git_repo=${HEAT_GIT_REPO};heat_git_version=${HEAT_GIT_VERSION};run_ansible=${RUN_ANSIBLE}" -t 151
 

@@ -247,6 +247,7 @@ resources:
             "%%ID%%": "2"
             "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
+            "%%ANSIBLE_PLAYBOOKS%%": { get_param: ansible_playbooks }
             "%%CURL_CLI%%": { get_attr: ['controller2_wait_handle', 'curl_cli'] }
 
   controller3:
@@ -275,6 +276,7 @@ resources:
             "%%ID%%": "3"
             "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
+            "%%ANSIBLE_PLAYBOOKS%%": { get_param: ansible_playbooks }
             "%%CURL_CLI%%": { get_attr: ['controller3_wait_handle', 'curl_cli'] }
 
   compute1:
@@ -303,6 +305,7 @@ resources:
             "%%ID%%": "4"
             "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
+            "%%ANSIBLE_PLAYBOOKS%%": { get_param: ansible_playbooks }
             "%%CURL_CLI%%": { get_attr: ['compute1_wait_handle', 'curl_cli'] }
 
   compute2:
@@ -331,6 +334,7 @@ resources:
             "%%ID%%": "5"
             "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
+            "%%ANSIBLE_PLAYBOOKS%%": { get_param: ansible_playbooks }
             "%%CURL_CLI%%": { get_attr: ['compute2_wait_handle', 'curl_cli'] }
 
 outputs:

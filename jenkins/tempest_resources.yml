@@ -125,3 +125,29 @@
     openrc_path: /root/openrc
     router_name: router
     subnet_name: private-subnet
+
+- name: Check if tempest flavor 201 exists
+  shell: |
+    . /root/openrc
+    nova flavor-show tempest1
+  register: tempest1
+  ignore_errors: True
+
+- name: Check if tempest flavor 202 exists
+  shell: |
+    . /root/openrc
+    nova flavor-show tempest2
+  register: tempest2
+  ignore_errors: True
+
+- name: Create tempest flavor 201
+  shell: |
+    . /root/openrc
+    nova flavor-create tempest1 201 256 1 1
+  when: tempest1|failed
+
+- name: Create tempest flavor 202
+  shell: |
+    . /root/openrc
+    nova flavor-create tempest2 202 512 1 1
+  when: tempest2|failed

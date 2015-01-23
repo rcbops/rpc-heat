@@ -192,8 +192,11 @@ user_variables="/etc/rpc_deploy/user_variables.yml"
 echo -n "%%PRIVATE_KEY%%" > .ssh/id_rsa
 chmod 600 .ssh/*
 
-git clone -b %%RPC_GIT_VERSION%% %%RPC_GIT_REPO%% ansible-lxc-rpc
-cd ansible-lxc-rpc
+if [ ! -e /root/os-ansible-deployment ]; then
+  git clone -b %%RPC_GIT_VERSION%% %%RPC_GIT_REPO%% os-ansible-deployment
+fi
+
+cd os-ansible-deployment
 pip install -r requirements.txt
 cp -a etc/rpc_deploy /etc/
 

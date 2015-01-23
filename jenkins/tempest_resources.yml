@@ -65,6 +65,16 @@
     - demo
     - alt_demo
 
+- name: Ensure stack_owner role
+  keystone: >
+    command: ensure_role
+    login_tenant_name: "{{ auth_admin_tenant }}"
+    login_user: "{{ auth_admin_username }}"
+    login_password: "{{ auth_admin_password }}"
+    endpoint: "{{ auth_admin_uri }}"
+    role_name: "ResellerAdmin"
+  when: groups['swift_all']|length > 0
+
 - name: Get demo tenant id
   keystone:
     command: get_tenant

@@ -1,0 +1,724 @@
+commit c18d4b558bc61792cafca3582130a55e7d1e75a5
+Author: Matt Thompson <mattt@defunct.ca>
+Date:   Fri Dec 12 12:47:20 2014 +0000
+
+    Tempest changes
+
+    This change does the following:
+
+    * updates neutron ansible library to support adding networks, subnets,
+      routers, etc.
+    * updates tempest_resources to create network/subnet/router,
+      tempest-specific flavors, and swift reseller role
+    * updates tempest.conf to disable neutron features which don't work in
+      our environment and other minor changes
+    * updates tempest.conf to enable swift tests depending on whether
+      tempest_swift_enabled is set (we also create
+      inventory/group_vars/tempest_all.yml defaulting this to true)
+
+    Change-Id: I607ec6556d792573f1f56ab1d29bbcf97b1f39ce
+
+diff --git a/rpc_deployment/inventory/group_vars/tempest_all.yml b/rpc_deployment/inventory/group_vars/tempest_all.yml
+new file mode 100644
+index 0000000..6a9c8bf
+--- /dev/null
++++ b/rpc_deployment/inventory/group_vars/tempest_all.yml
+@@ -0,0 +1,22 @@
++---
++# Copyright 2014, Rackspace US, Inc.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++# The variables file used by the playbooks in the Glance-api group.
++# These don't have to be explicitly imported by vars_files: they are autopopulated.
++
++## Service Name
++service_name: tempest
++
++tempest_swift_enabled: True
+diff --git a/rpc_deployment/library/neutron b/rpc_deployment/library/neutron
+index 8481e49..58a9623 100644
+--- a/rpc_deployment/library/neutron
++++ b/rpc_deployment/library/neutron
+@@ -13,7 +13,7 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+
+-DOCUMENTATION='''
++DOCUMENTATION = '''
+ ---
+ module: neutron
+ short_description:
+@@ -25,37 +25,125 @@ options:
+         description:
+             - Operation for the module to perform. Currently available
+         choices:
+-            - create_network_with_subnet
++            - create_network
++            - create_subnet
++            - create_router
++            - add_router_interface
++        required: True
+     openrc_path:
+         decription:
+-            - Path to openrc file from which credentials and keystone endpoint will be extracted
++            - Path to openrc file from which credentials and keystone endpoint
++              will be extracted
+     net_name:
+         description:
+-            - Name of the net to create
++            - Name of network
+     subnet_name:
+         description:
+-            - Name of the subnet to create
++            - Name of subnet
++    router_name:
++        description:
++            - Name of router
+     cidr:
+         description:
+-            - CIDR to use for the subnet
++            - Specify CIDR to use when creating subnet
++    provider_physical_network:
++        description:
++            - Specify provider:physical_network when creating network
++    provider_network_type:
++        description:
++            - Specify provider:network_type when creating network
++    provider_segmentation_id:
++        description:
++            - Specify provider:segmentation_id when creating network
++    router_external:
++        description:
++            - Specify router:external' when creating network
++    external_gateway_info
++        description:
++            - Specify external_gateway_info when creating router
+ author: Hugh Saunders
+ '''
+
+ EXAMPLES = '''
+-# Create a subnet with parent network
+-- name: Ensure tempest network exists
++- name: Create private network
+   neutron:
+-    command: create_network_with_subnet
++    command: create_network
+     openrc_path: /root/openrc
+-    network_name: tempest
++    net_name: private
++- name: Create public network
++  neutron:
++    command: create_network
++    openrc_path: /root/openrc
++    net_name: public
++    provider_network_type: flat
++    provider_physical_network: vlan
++    router_external: true
++- name: Create private subnet
++  neutron:
++    command: create_subnet
++    openrc_path: /root/openrc
++    net_name: private
++    subnet_name: private-subnet
+     cidr: "192.168.74.0/24"
++- name: Create public subnet
++  neutron:
++    command: create_subnet
++    openrc_path: /root/openrc
++    net_name: public
++    subnet_name: public-subnet
++    cidr: "10.1.13.0/24"
++- name: Create router
++  neutron:
++    command: create_router
++    openrc_path: /root/openrc
++    router_name: router
++    external_gateway_info: public
++- name: Add private subnet to router
++  neutron:
++    command: add_router_interface
++    openrc_path: /root/openrc
++    router_name: router
++    subnet_name: private-subnet
+ '''
+
+ import re
+ import keystoneclient.v2_0.client as ksclient
+ from neutronclient.neutron import client as nclient
+
+-COMMAND_MAP = {'create_network_with_subnet': 'create_subnet'}
++COMMAND_MAP = {
++    'create_network': {
++        'variables': [
++            'net_name',
++            'provider_physical_network',
++            'provider_network_type',
++            'provider_segmentation_id',
++            'router_external',
++            'tenant_id'
++        ]
++    },
++    'create_subnet': {
++        'variables': [
++            'net_name',
++            'subnet_name',
++            'cidr',
++            'tenant_id'
++        ]
++    },
++    'create_router': {
++        'variables': [
++            'router_name',
++            'external_gateway_info',
++            'tenant_id'
++        ]
++    },
++    'add_router_interface': {
++        'variables': [
++            'router_name',
++            'subnet_name'
++        ]
++    }
++}
++
+
+ class ManageNeutron(object):
+     def __init__(self, module):
+@@ -63,13 +151,89 @@ class ManageNeutron(object):
+         self.neutron = None
+         self.keystone = None
+         self.module = module
+-        try:
+-            self._keystone_authenticate()
+-            self._init_neutron()
+-        except Exception as e:
+-            self.module.fail_json(
+-                err="Initialisation Error: %s" % e,
+-                rc=2, msg=str(e))
++
++    def command_router(self):
++        """Run the command as its provided to the module."""
++        command_name = self.module.params['command']
++        if command_name not in COMMAND_MAP:
++            self.failure(
++                error='No Command Found',
++                rc=2,
++                msg='Command [ %s ] was not found.' % command_name
++            )
++
++        action_command = COMMAND_MAP[command_name]
++        if hasattr(self, '_%s' % command_name):
++            action = getattr(self, '_%s' % command_name)
++            try:
++                self._keystone_authenticate()
++                self._init_neutron()
++            except Exception as e:
++                self.module.fail_json(
++                    err="Initialisation Error: %s" % e,
++                    rc=2, msg=str(e))
++            facts = action(variables=action_command['variables'])
++            if facts is None:
++                self.module.exit_json(changed=self.state_change)
++            else:
++                self.module.exit_json(
++                    changed=self.state_change,
++                    ansible_facts=facts
++                )
++        else:
++            self.failure(
++                error='Command not in ManageNeutron class',
++                rc=2,
++                msg='Method [ %s ] was not found.' % command_name
++            )
++
++    @staticmethod
++    def _facts(resource_type, resource_data):
++        """Return a dict for our Ansible facts.
++
++        :param facts: ``dict``  Dict with data to return
++        """
++        key = 'neutron_%s' % resource_type
++        facts = {key: {}}
++        for f in resource_data[resource_type]:
++            name = f['name']
++            del f['name']
++            facts[key][name] = f
++
++        return facts
++
++    def _get_vars(self, variables, required=None):
++        """Return a dict of all variables as found within the module.
++
++        :param variables: ``list``  List of all variables that are available to
++                                    use within the Neutron Command.
++        :param required: ``list``  Name of variables that are required.
++        """
++        return_dict = {}
++        for variable in variables:
++            return_dict[variable] = self.module.params.get(variable)
++        else:
++            if isinstance(required, list):
++                for var_name in required:
++                    check = return_dict.get(var_name)
++                    if check is None:
++                        self.failure(
++                            error='Missing [ %s ] from Task or found a None'
++                                  ' value' % var_name,
++                            rc=000,
++                            msg='variables %s - available params [ %s ]'
++                                % (variables, self.module.params)
++                        )
++            return return_dict
++
++    def failure(self, error, rc, msg):
++        """Return a Failure when running an Ansible command.
++
++        :param error: ``str``  Error that occurred.
++        :param rc: ``int``     Return code while executing an Ansible command.
++        :param msg: ``str``    Message to report.
++        """
++        self.module.fail_json(msg=msg, rc=rc, err=error)
+
+     def _parse_openrc(self):
+         """ Get credentials from an openrc file """
+@@ -99,46 +263,124 @@ class ManageNeutron(object):
+                 endpoint_type=openrc['OS_ENDPOINT_TYPE']),
+             token=self.keystone.get_token(self.keystone.session))
+
+-    def route(self):
+-        """ Run the command specified by the command parameter """
+-        getattr(self, COMMAND_MAP[self.module.params['command']])()
++    def _get_resource_by_name(self, resource_type, resource_name):
++        action = getattr(self.neutron, 'list_%s' % resource_type)
++        resource = action(name=resource_name)[resource_type]
++
++        if resource:
++            return resource[0]['id']
++        else:
++            return None
++
++    def _create_network(self, variables):
++        required_vars = ['net_name']
++        variables_dict = self._get_vars(variables, required=required_vars)
++        net_name = variables_dict.pop('net_name')
++        provider_physical_network = variables_dict.pop(
++            'provider_physical_network'
++        )
++        provider_network_type = variables_dict.pop('provider_network_type')
++        provider_segmentation_id = variables_dict.pop('provider_segmentation_id')
++        router_external = variables_dict.pop('router_external')
++        tenant_id = variables_dict.pop('tenant_id')
++
++        if not self._get_resource_by_name('networks', net_name):
++            n = {"name": net_name, "admin_state_up": True}
++            if provider_physical_network:
++                n['provider:physical_network'] = provider_physical_network
++            if provider_network_type:
++                n['provider:network_type'] = provider_network_type
++            if provider_segmentation_id:
++                n['provider:segmentation_id'] = str(provider_segmentation_id)
++            if router_external:
++                n['router:external'] = router_external
++            if tenant_id:
++                n['tenant_id'] = tenant_id
+
+-    def create_network(self):
+-        net_name = self.module.params['net_name']
+-        if not self.neutron.list_networks(name=net_name)['networks']:
+-            # network doesn't exist, create it
+             self.state_change = True
+-            self.neutron.create_network(
+-                    {"network": {"name": net_name, "admin_state_up": True}})
+-
+-    def _get_network_by_name(self, net_name):
+-        return self.neutron.list_networks(name=net_name)['networks'][0]
+-
+-    def create_subnet(self, network_id=None):
+-        net_name = self.module.params['net_name']
+-        subnet_name = self.module.params['subnet_name']
+-        cidr = self.module.params['cidr']
+-        if network_id is None:
+-            self.create_network()
+-            network_id = self._get_network_by_name(net_name)['id']
+-        if not self.neutron.list_subnets(
+-                cidr=cidr, network_id=network_id)['subnets']:
+-            # subnet doesn't exist, create it
++            self.neutron.create_network({"network": n})
++
++        return self._facts('networks', self.neutron.list_networks())
++
++    def _create_subnet(self, variables):
++        required_vars = ['net_name', 'subnet_name', 'cidr']
++        variables_dict = self._get_vars(variables, required=required_vars)
++        net_name = variables_dict.pop('net_name')
++        subnet_name = variables_dict.pop('subnet_name')
++        cidr = variables_dict.pop('cidr')
++        network_id = self._get_resource_by_name('networks', net_name)
++        tenant_id = variables_dict.pop('tenant_id')
++
++        if not network_id:
++            self.failure(
++                error='Network not found',
++                rc=1,
++                msg='The specified network could not be found'
++            )
++        if not self.neutron.list_subnets(cidr=cidr,
++                                         network_id=network_id)['subnets']:
+             self.state_change = True
+-            self.neutron.create_subnet(
+-                    {"subnet": {"name": subnet_name,
+-                                "cidr": cidr,
+-                                "ip_version": 4,
+-                                "network_id": network_id}})
+-        self.module.exit_json(
+-            changed=self.state_change,
+-            ansible_facts=dict(neutron=self._get_network_facts()))
+-
+-    def _get_network_facts(self):
+-        facts={}
+-        facts['networks']=self.neutron.list_networks()['networks']
+-        facts['subnets']=self.neutron.list_subnets()['subnets']
+-        return facts
++            s = {"name": subnet_name, "cidr": cidr, "ip_version": 4,
++                 "network_id": network_id}
++            if tenant_id:
++                s["tenant_id"] = tenant_id
++            self.neutron.create_subnet({"subnet": s})
++        return self._facts('subnets', self.neutron.list_subnets())
++
++    def _create_router(self, variables):
++        required_vars = ['router_name', 'external_gateway_info']
++        variables_dict = self._get_vars(variables, required=required_vars)
++        router_name = variables_dict.pop('router_name')
++        external_gateway_info = variables_dict.pop('external_gateway_info')
++        tenant_id = variables_dict.pop('tenant_id')
++
++        if not self._get_resource_by_name('routers', router_name):
++            self.state_change = True
++            r = {'name': router_name}
++            if external_gateway_info:
++                network_id = self._get_resource_by_name('networks',
++                                                        external_gateway_info)
++                r['external_gateway_info'] = {'network_id': network_id}
++            if tenant_id:
++                r['tenant_id'] = tenant_id
++            self.neutron.create_router({'router': r})
++
++        return self._facts('routers', self.neutron.list_routers())
++
++    def _add_router_interface(self, variables):
++        required_vars = ['router_name', 'subnet_name']
++        variables_dict = self._get_vars(variables, required=required_vars)
++        router_name = variables_dict.pop('router_name')
++        subnet_name = variables_dict.pop('subnet_name')
++        router_id = self._get_resource_by_name('routers', router_name)
++        subnet_id = self._get_resource_by_name('subnets', subnet_name)
++
++        if not router_id:
++            self.failure(
++                error='Router not found',
++                rc=1,
++                msg='The specified router could not be found'
++            )
++
++        if not subnet_id:
++            self.failure(
++                error='Subnet not found',
++                rc=1,
++                msg='The specified subnet could not be found'
++            )
++
++        found = False
++
++        for port in self.neutron.list_ports()['ports']:
++            if port['device_id'] != router_id:
++                next
++            for fixed_ips in port['fixed_ips']:
++                if fixed_ips['subnet_id'] == subnet_id:
++                    found = True
++        if not found:
++            self.state_change = True
++            self.neutron.add_interface_router(router_id,
++                                              {'subnet_id': subnet_id})
+
+
+ def main():
+@@ -146,16 +388,22 @@ def main():
+         argument_spec=dict(
+             command=dict(required=True, choices=COMMAND_MAP.keys()),
+             openrc_path=dict(required=True),
+-            net_name=dict(required=True),
+-            subnet_name=dict(required=True),
+-            cidr=dict(required=True),
++            net_name=dict(required=False),
++            subnet_name=dict(required=False),
++            cidr=dict(required=False),
++            provider_physical_network=dict(required=False),
++            provider_network_type=dict(required=False),
++            provider_segmentation_id=dict(required=False),
++            router_external=dict(required=False),
++            router_name=dict(required=False),
++            external_gateway_info=dict(required=False),
++            tenant_id=dict(required=False)
+         ),
+         supports_check_mode=False
+     )
+-    mg = ManageNeutron(module)
+-    mg.route()
++    mn = ManageNeutron(module)
++    mn.command_router()
+
+ from ansible.module_utils.basic import *
+ if __name__ == '__main__':
+     main()
+-
+diff --git a/rpc_deployment/playbooks/openstack/tempest.yml b/rpc_deployment/playbooks/openstack/tempest.yml
+index 589c722..56dc044 100644
+--- a/rpc_deployment/playbooks/openstack/tempest.yml
++++ b/rpc_deployment/playbooks/openstack/tempest.yml
+@@ -16,19 +16,20 @@
+ # Configure tempest on the utility containers
+
+ - hosts: utility_all
+-  vars:
+-    service_name: tempest
+-  vars_files:
+-    - vars/repo_packages/tempest.yml
+   roles:
+     - common
+     - openstack_common
+     - openstack_openrc
++  vars_files:
++    - vars/repo_packages/tempest.yml
++    - inventory/group_vars/tempest_all.yml
+
+ # Openstack resources only need to be created once
+ - hosts: utility_all[0]
+   roles:
+     - tempest_resources
++  vars_files:
++    - inventory/group_vars/tempest_all.yml
+
+ # Tempest is installed and configured in all utility containers
+ - hosts: utility_all
+@@ -36,5 +37,3 @@
+     - vars/repo_packages/tempest.yml
+   roles:
+     - tempest
+-
+-
+diff --git a/rpc_deployment/roles/tempest/templates/tempest.conf.j2 b/rpc_deployment/roles/tempest/templates/tempest.conf.j2
+index 1e4f52e..6ee485a 100644
+--- a/rpc_deployment/roles/tempest/templates/tempest.conf.j2
++++ b/rpc_deployment/roles/tempest/templates/tempest.conf.j2
+@@ -9,7 +9,7 @@ tempest_roles = remote_image
+
+ [boto]
+ ssh_user = cirros
+-instance_type = m1.nano
++instance_type = tempest1
+ aki_manifest = cirros-0.3.2-x86_64-vmlinuz.manifest.xml
+ ami_manifest = cirros-0.3.2-x86_64-blank.img.manifest.xml
+ ari_manifest = cirros-0.3.2-x86_64-initrd.manifest.xml
+@@ -26,9 +26,9 @@ has_manage=false
+
+
+ [compute]
+-ssh_connect_method = fixed
+-flavor_ref_alt = 3
+-flavor_ref = 2
++ssh_connect_method = floating
++flavor_ref_alt = 202
++flavor_ref = 201
+ image_alt_ssh_user = cirros
+ image_ref_alt = {{ hostvars[groups['utility_all'][0]]['glance_images']['cirros']['id'] }}
+ image_ssh_user = cirros
+@@ -89,19 +89,20 @@ xml_api = False
+ [negative]
+
+ [network]
+-default_network = 10.0.0.0/24
++default_network = 192.168.74.0/24
+ public_router_id =
+-public_network_id =
++public_network_id = {{ hostvars[groups['utility_all'][0]]['neutron_networks']['public']['id'] }}
+ tenant_networks_reachable = false
+ api_version = 2.0
+
+ [network-feature-enabled]
+-api_extensions = all
++api_extensions = agent, allowed-address-pairs, binding, dhcp_agent_scheduler, ext-gw-mode, external-net, extra_dhcp_opt, extra_dhcp_optagent, extraroute, l3_agent_scheduler, metering, provider, quotas, router, security-group, service-type
+ ipv6_subnet_attributes = True
+ ipv6 = True
+ xml_api = False
+
+ [object-storage]
++operator_role = swiftoperator
+
+
+
+@@ -126,7 +127,11 @@ img_dir = /opt/stack/devstack/files/images/cirros-0.3.2-x86_64-uec
+ neutron = True
+ heat = True
+ ceilometer = False
++{% if hostvars[groups['utility_all'][0]]['tempest_run_swift_tests'] == True %}
++swift = True
++{% else %}
+ swift = False
++{% endif %}
+ cinder = True
+ nova = True
+ glance = True
+@@ -148,17 +153,3 @@ build_timeout = 600
+ [volume-feature-enabled]
+ backup = False
+ api_extensions = all
+-
+-
+-[compute-feature-disabled]
+-api_v3_extensions =
+-api_extensions =
+-
+-[network-feature-disabled]
+-api_extensions =
+-
+-[object-storage-feature-disabled]
+-discoverable_apis =
+-
+-[volume-feature-disabled]
+-api_extensions =
+diff --git a/rpc_deployment/roles/tempest_resources/tasks/main.yml b/rpc_deployment/roles/tempest_resources/tasks/main.yml
+index 8c0a5b1..7624fdf 100644
+--- a/rpc_deployment/roles/tempest_resources/tasks/main.yml
++++ b/rpc_deployment/roles/tempest_resources/tasks/main.yml
+@@ -65,6 +65,15 @@
+     - demo
+     - alt_demo
+
++- name: Ensure ResellerAdmin role
++  keystone:
++    command: ensure_role
++    login_tenant_name: "{{ auth_admin_tenant }}"
++    login_user: "{{ auth_admin_username }}"
++    login_password: "{{ auth_admin_password }}"
++    endpoint: "{{ auth_admin_uri }}"
++    role_name: "ResellerAdmin"
++
+ - name: Ensure remote_image role exists
+   keystone:
+     command: ensure_role
+@@ -74,10 +83,99 @@
+     login_user: "{{ auth_admin_username }}"
+     login_password: "{{ auth_admin_password }}"
+
+-- name: Ensure tempest network exists
++- name: Get demo tenant id
++  keystone:
++    command: get_tenant
++    tenant_name: demo
++    endpoint: "{{ auth_identity_uri }}"
++    login_tenant_name: "{{ auth_admin_tenant }}"
++    login_user: "{{ auth_admin_username }}"
++    login_password: "{{ auth_admin_password }}"
++
++- name: Store demo tenant id
++  set_fact:
++    keystone_demo_tenant_id: "{{ keystone_facts.id }}"
++
++- name: Ensure private network exists
++  neutron:
++    command: create_network
++    openrc_path: /root/openrc
++    net_name: private
++    tenant_id: "{{ keystone_demo_tenant_id }}"
++
++- name: Ensure public network exists
++  neutron:
++    command: create_network
++    openrc_path: /root/openrc
++    net_name: public
++    provider_network_type: flat
++    provider_physical_network: vlan
++    router_external: true
++
++- name: Ensure private subnet exists
+   neutron:
+-    command: create_network_with_subnet
++    command: create_subnet
+     openrc_path: /root/openrc
+-    net_name: tempest-net
+-    subnet_name: tempest-subnet
++    net_name: private
++    subnet_name: private-subnet
+     cidr: "192.168.74.0/24"
++    tenant_id: "{{ keystone_demo_tenant_id }}"
++
++- name: Ensure public subnet exists
++  neutron:
++    command: create_subnet
++    openrc_path: /root/openrc
++    net_name: public
++    subnet_name: public-subnet
++    cidr: "10.1.13.0/24"
++
++- name: Create router
++  neutron:
++    command: create_router
++    openrc_path: /root/openrc
++    router_name: router
++    external_gateway_info: public
++    tenant_id: "{{ keystone_demo_tenant_id }}"
++
++- name: Add private subnet to router
++  neutron:
++    command: add_router_interface
++    openrc_path: /root/openrc
++    router_name: router
++    subnet_name: private-subnet
++
++- name: Check if tempest flavor 201 exists
++  shell: |
++    . /root/openrc
++    nova flavor-show tempest1
++  register: tempest1
++  ignore_errors: True
++
++- name: Check if tempest flavor 202 exists
++  shell: |
++    . /root/openrc
++    nova flavor-show tempest2
++  register: tempest2
++  ignore_errors: True
++
++- name: Create tempest flavor 201
++  shell: |
++    . /root/openrc
++    nova flavor-create tempest1 201 256 1 1
++  when: tempest1|failed
++
++- name: Create tempest flavor 202
++  shell: |
++    . /root/openrc
++    nova flavor-create tempest2 202 512 1 1
++  when: tempest2|failed
++
++- name: Set tempest_run_swift_tests to True when tempest_swift_enabled is True
++  set_fact:
++    tempest_run_swift_tests: True
++  when: (tempest_swift_enabled is defined and tempest_swift_enabled == True) or groups['swift_all']|length > 0
++
++- name: Set tempest_run_swift_tests to False when tempest_swift_enabled == False
++  set_fact:
++    tempest_run_swift_tests: False
++  when: (tempest_swift_enabled is defined and tempest_swift_enabled == False) or groups['swift_all']|length == 0

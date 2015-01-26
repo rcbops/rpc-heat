@@ -1,4 +1,4 @@
-commit c18d4b558bc61792cafca3582130a55e7d1e75a5
+commit 6f3496bae518a6f8bf13b70404e6f2da48e609b7
 Author: Matt Thompson <mattt@defunct.ca>
 Date:   Fri Dec 12 12:47:20 2014 +0000
 
@@ -519,7 +519,7 @@ index 589c722..56dc044 100644
 -
 -
 diff --git a/rpc_deployment/roles/tempest/templates/tempest.conf.j2 b/rpc_deployment/roles/tempest/templates/tempest.conf.j2
-index 1e4f52e..6ee485a 100644
+index 1e4f52e..0dfabcb 100644
 --- a/rpc_deployment/roles/tempest/templates/tempest.conf.j2
 +++ b/rpc_deployment/roles/tempest/templates/tempest.conf.j2
 @@ -9,7 +9,7 @@ tempest_roles = remote_image
@@ -544,7 +544,7 @@ index 1e4f52e..6ee485a 100644
  image_alt_ssh_user = cirros
  image_ref_alt = {{ hostvars[groups['utility_all'][0]]['glance_images']['cirros']['id'] }}
  image_ssh_user = cirros
-@@ -89,19 +89,20 @@ xml_api = False
+@@ -89,24 +89,27 @@ xml_api = False
  [negative]
 
  [network]
@@ -565,10 +565,17 @@ index 1e4f52e..6ee485a 100644
 
  [object-storage]
 +operator_role = swiftoperator
++reseller_admin_role = reseller_admin
 
 
 
-@@ -126,7 +127,11 @@ img_dir = /opt/stack/devstack/files/images/cirros-0.3.2-x86_64-uec
+ [object-storage-feature-enabled]
+ discoverable_apis = all
++object_versioning = false
+
+
+ [orchestration]
+@@ -126,7 +129,11 @@ img_dir = /opt/stack/devstack/files/images/cirros-0.3.2-x86_64-uec
  neutron = True
  heat = True
  ceilometer = False
@@ -580,7 +587,7 @@ index 1e4f52e..6ee485a 100644
  cinder = True
  nova = True
  glance = True
-@@ -148,17 +153,3 @@ build_timeout = 600
+@@ -148,17 +155,3 @@ build_timeout = 600
  [volume-feature-enabled]
  backup = False
  api_extensions = all
@@ -599,21 +606,21 @@ index 1e4f52e..6ee485a 100644
 -[volume-feature-disabled]
 -api_extensions =
 diff --git a/rpc_deployment/roles/tempest_resources/tasks/main.yml b/rpc_deployment/roles/tempest_resources/tasks/main.yml
-index 8c0a5b1..7624fdf 100644
+index 8c0a5b1..cf6d053 100644
 --- a/rpc_deployment/roles/tempest_resources/tasks/main.yml
 +++ b/rpc_deployment/roles/tempest_resources/tasks/main.yml
 @@ -65,6 +65,15 @@
      - demo
      - alt_demo
 
-+- name: Ensure ResellerAdmin role
++- name: Ensure reseller_admin role
 +  keystone:
 +    command: ensure_role
 +    login_tenant_name: "{{ auth_admin_tenant }}"
 +    login_user: "{{ auth_admin_username }}"
 +    login_password: "{{ auth_admin_password }}"
 +    endpoint: "{{ auth_admin_uri }}"
-+    role_name: "ResellerAdmin"
++    role_name: "reseller_admin"
 +
  - name: Ensure remote_image role exists
    keystone:

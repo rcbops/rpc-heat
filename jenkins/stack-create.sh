@@ -7,7 +7,7 @@ source ~/.openrc
 KEY_NAME="jenkins"
 FLAVOR=${FLAVOR:-"performance1-8"}
 RPC_GIT_REPO="https://github.com/stackforge/os-ansible-deployment"
-RPC_GIT_VERSION="master"
+RPC_GIT_VERSION=${RPC_GIT_VERSION:-"master"}
 HEAT_GIT_REPO="https://github.com/mattt416/rpc_heat"
 HEAT_GIT_VERSION="master"
 CLUSTER_PREFIX=${CLUSTER_PREFIX:-$(date "+%Y%m%d%H%M")}

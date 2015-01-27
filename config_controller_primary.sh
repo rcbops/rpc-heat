@@ -311,7 +311,7 @@ fi
 
 if [ $MONITORING_ENABLED -eq 1 ]; then
   cat >> run_ansible.sh << "EOF"
-retry 3 ansible-playbook -e @${user_variables} playbooks/monitoring/raxmon_all.yml
+retry 3 ansible-playbook -e @${user_variables} playbooks/monitoring/raxmon-all.yml
 retry 3 ansible-playbook -e @${user_variables} playbooks/monitoring/maas_local.yml
 retry 3 ansible-playbook -e @${user_variables} playbooks/monitoring/maas_remote.yml
 EOF

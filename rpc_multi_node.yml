@@ -58,8 +58,6 @@ parameters:
     label: Ansible playbooks
     description: Ansible playbooks to run (minimal excludes logging/support playbooks)
     default: all
-    constraints:
-      - allowed_values: [ all, minimal, all+swift, minimal+swift, all+tempest, minimal+tempest, all+swift+tempest, minimal+swift+tempest ]
 
   run_ansible:
     type: boolean

@@ -24,4 +24,4 @@ fi
 
 if echo "$ANSIBLE_PLAYBOOKS" | grep "monitoring"; then
   ssh -l root -i $ssh_key $ssh_options $ip "cd ${checkout}/scripts && python rpc_maas_tool.py check --prefix jenkins-${BUILD_NUMBER}"
-end
+fi

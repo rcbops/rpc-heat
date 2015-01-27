@@ -9,13 +9,6 @@ checkout="/root/os-ansible-deployment/rpc_deployment"
 ssh_key=~/.ssh/jenkins
 ssh_options="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-# Temporary commands to test new neutron library
-#ssh -l root -i $ssh_key $ssh_options $ip "cd $checkout && curl -o library/neutron https://raw.githubusercontent.com/mattt416/os-ansible-deployment/3b425cdd1f7ef8ca8819c503bcda7e0b0dfa1351/rpc_deployment/library/neutron"
-#scp -i $ssh_key $ssh_options jenkins/tempest_resources.yml root@${ip}:${checkout}/roles/tempest_resources/tasks/main.yml
-#scp -i $ssh_key $ssh_options jenkins/tempest.conf.j2 root@${ip}:${checkout}/roles/tempest/templates/tempest.conf.j2
-scp -i $ssh_key $ssh_options jenkins/tempest.diff root@${ip}:${checkout}/tempest.diff
-ssh -l root -i $ssh_key $ssh_options $ip "cd $checkout && git apply tempest.diff"
-
 # Temporary work-around otherwise we hit https://bugs.launchpad.net/neutron/+bug/1382064
 # which results in tempest tests failing
 ssh -l root -i $ssh_key $ssh_options $ip "sed -i 's/api_workers = 10/api_workers = 0/' /root/os-ansible-deployment/rpc_deployment/roles/neutron_common/templates/neutron.conf"

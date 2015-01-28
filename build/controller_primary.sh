@@ -15,6 +15,7 @@ cp -a etc/rpc_deploy /etc/
 
 scripts/pw-token-gen.py --file $user_variables
 echo "nova_virt_type: qemu" >> $user_variables
+echo "lb_name: %%CLUSTER_PREFIX%%-node3" >> $user_variables
 
 sed -i "s#\(rackspace_cloud_auth_url\): .*#\1: %%RACKSPACE_CLOUD_AUTH_URL%%#g" $user_variables
 sed -i "s/\(rackspace_cloud_tenant_id\): .*/\1: %%RACKSPACE_CLOUD_TENANT_ID%%/g" $user_variables
@@ -88,14 +89,12 @@ retry 3 ansible-playbook -e @${user_variables} playbooks/setup/host-setup.yml
 retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/haproxy-install.yml
 EOF
 
-if echo "$ANSIBLE_PLAYBOOKS" | grep "all"; then
+if [ $LOGGING_ENABLED -eq 1 ]; then
   cat >> run_ansible.sh << "EOF"
 retry 3 ansible-playbook -e @${user_variables} playbooks/infrastructure/infrastructure-setup.yml \
                                                playbooks/openstack/openstack-setup.yml
 EOF
-fi
-
-if echo "$ANSIBLE_PLAYBOOKS" | grep "minimal"; then
+else
   cat >> run_ansible.sh << "EOF"
 egrep -v 'rpc-support-all.yml|rsyslog-config.yml' playbooks/openstack/openstack-setup.yml > \
                                                   playbooks/openstack/openstack-setup-no-logging.yml

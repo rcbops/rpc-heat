@@ -4,22 +4,31 @@ set -e
 
 export HOME=${HOME:-"/root"}
 
-ANSIBLE_PLAYBOOKS="%%ANSIBLE_PLAYBOOKS%%"
-
 INTERFACES="/etc/network/interfaces"
 INTERFACES_D="/etc/network/interfaces.d"
-SWIFT_ENABLED=0
 
-if echo "$ANSIBLE_PLAYBOOKS" | grep "swift"; then
+if [ "%%DEPLOY_LOGGING%%" = "True" ]; then
+  LOGGING_ENABLED=1
+else
+  LOGGING_ENABLED=0
+fi
+
+if [ "%%DEPLOY_SWIFT%%" = "True" ]; then
   SWIFT_ENABLED=1
+else
+  SWIFT_ENABLED=0
 fi
 
-if echo "$ANSIBLE_PLAYBOOKS" | grep "tempest"; then
+if [ "%%DEPLOY_TEMPEST%%" = "True" ]; then
   TEMPEST_ENABLED=1
+else
+  TEMPEST_ENABLED=0
 fi
 
-if echo "$ANSIBLE_PLAYBOOKS" | grep "monitoring"; then
+if [ "%%DEPLOY_MONITORING%%" = "True" ]; then
   MONITORING_ENABLED=1
+else
+  MONITORING_ENABLED=0
 fi
 
 if [ "%%RUN_ANSIBLE%%" = "True" ]; then

@@ -18,10 +18,12 @@ ssh -l root -i $ssh_key $ssh_options $ip "cd ${checkout}/rpc_deployment && bash 
 
 ssh -l root -i $ssh_key $ssh_options $ip "ifconfig br-vlan 10.1.13.1 netmask 255.255.255.0"
 
-if echo "$ANSIBLE_PLAYBOOKS" | grep "tempest"; then
+if [ $DEPLOY_TEMPEST = "true" ]; then
   ssh -l root -i $ssh_key $ssh_options $ip "lxc-attach -n \$(lxc-ls | grep utility) -- sh -c 'cd /opt/tempest_*/ && ./run_tempest.sh --smoke -N || true'"
 fi
 
-if echo "$ANSIBLE_PLAYBOOKS" | grep "monitoring"; then
-  ssh -l root -i $ssh_key $ssh_options $ip "cd ${checkout}/scripts && python rpc_maas_tool.py check --prefix jenkins-${BUILD_NUMBER}"
+if [ $DEPLOY_MONITORING = "true" ]; then
+  echo "Testing MaaS checks ..."
+  ssh -l root -i $ssh_key $ssh_options $ip "cd ${checkout}/scripts && python rpc_maas_tool.py check --prefix ${CLUSTER_PREFIX}"
+  echo "Done."
 fi

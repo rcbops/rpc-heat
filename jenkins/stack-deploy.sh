@@ -4,7 +4,7 @@ set -e
 
 source ~/.openrc
 
-ip=$(heat output-show rpc-jenkins-${BUILD_NUMBER} controller1_ip | sed -e 's/"//g')
+ip=$(heat output-show rpc-${CLUSTER_PREFIX} controller1_ip | sed -e 's/"//g')
 checkout="/root/os-ansible-deployment/"
 ssh_key=~/.ssh/jenkins
 ssh_options="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"

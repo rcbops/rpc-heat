@@ -4,4 +4,4 @@ set -e
 
 source ~/.openrc
 
-heat stack-delete rpc-jenkins-${BUILD_NUMBER}
+heat stack-delete rpc-${CLUSTER_PREFIX}

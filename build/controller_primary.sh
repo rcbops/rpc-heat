@@ -122,7 +122,8 @@ if [ $MONITORING_ENABLED -eq 1 ]; then
   cat >> run_ansible.sh << "EOF"
 retry 3 ansible-playbook -e @${user_variables} playbooks/monitoring/raxmon-all.yml
 retry 3 ansible-playbook -e @${user_variables} playbooks/monitoring/maas_local.yml
-retry 3 ansible-playbook -e @${user_variables} playbooks/monitoring/maas_remote.yml
+# We do not run these as remote checks fail due to self-signed SSL certificate
+#retry 3 ansible-playbook -e @${user_variables} playbooks/monitoring/maas_remote.yml
 EOF
 fi
 

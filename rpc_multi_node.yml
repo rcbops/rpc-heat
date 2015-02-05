@@ -35,7 +35,7 @@ parameters:
     type: string
     label: Heat git repo
     description: URL of Heat git repo to clone
-    default: https://github.com/mattt416/rpc_heat
+    default: https://github.com/rcbops/rpc-heat
 
   heat_git_version:
     type: string

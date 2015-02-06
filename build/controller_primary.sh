@@ -130,3 +130,7 @@ fi
 if [ $RUN_ANSIBLE -eq 1 ]; then
   bash run_ansible.sh
 fi
+
+cat >> run_ansible.sh << "EOF"
+  echo "HEAT ANSIBLE RUN SUCCESSFUL"
+EOF

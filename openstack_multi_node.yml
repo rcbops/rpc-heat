@@ -188,6 +188,16 @@ resources:
   compute2_wait_handle:
     type: "OS::Heat::SwiftSignalHandle"
 
+  ansible_keypair:
+    type: "OS::Nova::KeyPair"
+    properties:
+      name:
+        str_replace:
+          template: "%%CLUSTER_PREFIX%%-key"
+          params:
+            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
+      save_private_key: true
+
   heat_mgmt_vxlan:
     type: Rackspace::Cloud::Network
     properties:
@@ -231,8 +241,8 @@ resources:
           params:
             "%%ID%%": "1"
             "%%EXTERNAL_VIP_IP%%": { get_attr: [controller3, accessIPv4] }
-            "%%PRIVATE_KEY%%": { get_file: id_rsa }
-            "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
+            "%%PRIVATE_KEY%%": { get_attr: [ansible_keypair, private_key] }
+            "%%PUBLIC_KEY%%": { get_attr: [ansible_keypair, public_key] }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
             "%%DEPLOY_INFRASTRUCTURE%%": { get_param: deploy_infrastructure }
             "%%DEPLOY_LOGGING%%": { get_param: deploy_logging }
@@ -278,7 +288,7 @@ resources:
           template: { get_file: config_controller_other.sh }
           params:
             "%%ID%%": "2"
-            "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
+            "%%PUBLIC_KEY%%": { get_attr: [ansible_keypair, public_key] }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
             "%%DEPLOY_SWIFT%%": { get_param: deploy_swift }
             "%%CURL_CLI%%": { get_attr: ['controller2_wait_handle', 'curl_cli'] }
@@ -307,7 +317,7 @@ resources:
           template: { get_file: config_controller_other.sh }
           params:
             "%%ID%%": "3"
-            "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
+            "%%PUBLIC_KEY%%": { get_attr: [ansible_keypair, public_key] }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
             "%%DEPLOY_SWIFT%%": { get_param: deploy_swift }
             "%%CURL_CLI%%": { get_attr: ['controller3_wait_handle', 'curl_cli'] }
@@ -336,7 +346,7 @@ resources:
           template: { get_file: config_compute_all.sh }
           params:
             "%%ID%%": "4"
-            "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
+            "%%PUBLIC_KEY%%": { get_attr: [ansible_keypair, public_key] }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
             "%%CURL_CLI%%": { get_attr: ['compute1_wait_handle', 'curl_cli'] }
 
@@ -364,7 +374,7 @@ resources:
           template: { get_file: config_compute_all.sh }
           params:
             "%%ID%%": "5"
-            "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
+            "%%PUBLIC_KEY%%": { get_attr: [ansible_keypair, public_key] }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
             "%%CURL_CLI%%": { get_attr: ['compute2_wait_handle', 'curl_cli'] }
 
@@ -384,3 +394,9 @@ outputs:
   compute2_ip:
     description: The IP address of compute2
     value: { get_attr: [compute2, accessIPv4] }
+  ansible_public_key:
+    description: Public key of generated keypair
+    value: { get_attr: [ansible_keypair, public_key] }
+  ansible_private_key:
+    description: Private key of generated keypair
+    value: { get_attr: [ansible_keypair, private_key] }

@@ -191,8 +191,14 @@ resources:
   heat_storage:
     type: Rackspace::Cloud::Network
     properties:
-      cidr: 172.29.228.0/22
+      cidr: 172.29.244.0/22
       label: heat_storage
+
+  heat_replication:
+    type: Rackspace::Cloud::Network
+    properties:
+      cidr: 172.29.252.0/22
+      label: heat_replication
 
   controller1:
     type: "OS::Nova::Server"
@@ -211,6 +217,7 @@ resources:
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
+        - uuid: { get_resource: heat_replication }
       config_drive: True
       user_data_format: RAW
       user_data:
@@ -257,6 +264,7 @@ resources:
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
+        - uuid: { get_resource: heat_replication }
       config_drive: True
       user_data_format: RAW
       user_data:
@@ -286,6 +294,7 @@ resources:
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
+        - uuid: { get_resource: heat_replication }
       config_drive: True
       user_data_format: RAW
       user_data:
@@ -315,6 +324,7 @@ resources:
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
+        - uuid: { get_resource: heat_replication }
       config_drive: True
       user_data_format: RAW
       user_data:
@@ -343,6 +353,7 @@ resources:
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
+        - uuid: { get_resource: heat_replication }
       config_drive: True
       user_data_format: RAW
       user_data:

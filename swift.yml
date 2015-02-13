@@ -52,7 +52,7 @@ global_overrides:
   swift:
     part_power: 8
     storage_network: 'br-storage'
-    replication_network: 'br-storage'
+    replication_network: 'br-replication'
     drives:
       - name: disk1
       - name: disk2

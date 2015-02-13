@@ -5,7 +5,7 @@ parameters:
     type: string
     label: Image name or ID
     description: Image to be used for compute instance
-    default: a3ba4cf5-70b9-4805-afa2-30d1ab81a625
+    default: Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)
 
   flavor:
     type: string

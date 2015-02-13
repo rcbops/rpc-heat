@@ -28,12 +28,15 @@ cidr_networks:
   tunnel: 172.29.240.0/22
   # Cidr used in the Storage network
   storage: 172.29.244.0/22
+  # Cidr used in the Storage network
+  replication: 172.29.252.0/22
 
 # User defined list of consumed IP addresses that may intersect
 # with the provided CIDR.
 used_ips:
   - 172.29.236.1,172.29.236.50
   - 172.29.244.1,172.29.244.50
+  - 172.29.252.1,172.29.252.50
 
 # As a user you can define anything that you may wish to "globally"
 # override from within the rpc_deploy configuration file. Anything

@@ -61,7 +61,7 @@ found=0
 found_private=0
 tmp_file=$(mktemp)
 
-for interface in eth1 eth2 eth3 eth4; do
+for interface in eth1 eth2 eth3 eth4 eth5; do
   ifdown $interface
 done
 
@@ -139,6 +139,35 @@ iface vxlan4 inet manual
         down ip link set vxlan4 down
 EOF
 
+cat > ${INTERFACES_D}/br-storage.cfg << "EOF"
+auto br-storage
+iface br-storage inet static
+    address 172.29.244.%%ID%%
+    netmask 255.255.252.0
+    bridge_ports vxlan4
+EOF
+
+cat > ${INTERFACES_D}/eth5.cfg << "EOF"
+auto eth5
+iface eth5 inet manual
+EOF
+
+cat > ${INTERFACES_D}/vxlan6.cfg << "EOF"
+auto vxlan6
+iface vxlan6 inet manual
+        pre-up ip link add vxlan6 type vxlan id 6 group 239.0.0.16 ttl 4 dev eth5
+        up ip link set vxlan6 up
+        down ip link set vxlan6 down
+EOF
+
+cat > ${INTERFACES_D}/br-replication.cfg << "EOF"
+auto br-replication
+iface br-replication inet static
+    address 172.29.252.%%ID%%
+    netmask 255.255.252.0
+    bridge_ports vxlan6
+EOF
+
 cat > ${INTERFACES_D}/vxlan5.cfg << "EOF"
 # We don't have a dedicated network for this traffic, so we piggy-back on eth4
 auto vxlan5
@@ -146,14 +175,6 @@ iface vxlan5 inet manual
         pre-up ip link add vxlan5 type vxlan id 5 group 239.0.0.16 ttl 4 dev eth4
         up ip link set vxlan5 up
         down ip link set vxlan5 down
-EOF
-
-cat > ${INTERFACES_D}/br-storage.cfg << "EOF"
-auto br-storage
-iface br-storage inet static
-    address 172.29.244.%%ID%%
-    netmask 255.255.252.0
-    bridge_ports vxlan4
 EOF
 
 cat > ${INTERFACES_D}/br-vlan.cfg << "EOF"

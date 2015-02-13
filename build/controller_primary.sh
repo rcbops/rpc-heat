@@ -127,6 +127,12 @@ retry 3 ansible-playbook -e @${user_variables} playbooks/monitoring/maas_local.y
 EOF
 fi
 
+if [ $SWIFT_ENABLED -eq 1 ] && [ $MONITORING_ENABLED -eq 1 ]; then
+  cat >> run_ansible.sh << "EOF"
+retry 3 ansible-playbook -e @${user_variables} playbooks/monitoring/swift_maas.yml
+EOF
+fi
+
 if [ $RUN_ANSIBLE -eq 1 ]; then
   bash run_ansible.sh
 fi

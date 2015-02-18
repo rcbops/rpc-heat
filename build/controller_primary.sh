@@ -1,17 +1,17 @@
-rpc_user_config="/etc/rpc_deploy/rpc_user_config.yml"
-swift_config="/etc/rpc_deploy/conf.d/swift.yml"
-user_variables="/etc/rpc_deploy/user_variables.yml"
+openstack_user_config="/etc/openstack_deploy/openstack_user_config.yml"
+swift_config="/etc/openstack_deploy/conf.d/swift.yml"
+user_variables="/etc/openstack_deploy/user_variables.yml"
 
 echo -n "%%PRIVATE_KEY%%" > .ssh/id_rsa
 chmod 600 .ssh/*
 
 if [ ! -e /root/os-ansible-deployment ]; then
-  git clone -b %%RPC_GIT_VERSION%% %%RPC_GIT_REPO%% os-ansible-deployment
+  git clone -b %%OS_ANSIBLE_GIT_VERSION%% %%OS_ANSIBLE_GIT_REPO%% os-ansible-deployment
 fi
 
 cd os-ansible-deployment
 pip install -r requirements.txt
-cp -a etc/rpc_deploy /etc/
+cp -a etc/openstack_deploy /etc/
 
 scripts/pw-token-gen.py --file $user_variables
 echo "nova_virt_type: qemu" >> $user_variables
@@ -34,16 +34,16 @@ else
   sed -i "s/\(glance_swift_store_region\): .*/\1: %%GLANCE_SWIFT_STORE_REGION%%/g" $user_variables
 fi
 
-environment_version=$(md5sum /etc/rpc_deploy/rpc_environment.yml | awk '{print $1}')
+environment_version=$(md5sum /etc/openstack_deploy/openstack_environment.yml | awk '{print $1}')
 
-# if %%HEAT_GIT_REPO%% has .git at end (https://github.com/mattt416/rpc_heat.git),
+# if %%HEAT_GIT_REPO%% has .git at end (https://github.com/rcbops/rpc-heat.git),
 # strip it off otherwise curl will 404
 raw_url=$(echo %%HEAT_GIT_REPO%% | sed -e 's/\.git$//g' -e 's/github.com/raw.githubusercontent.com/g')
 
-curl -o $rpc_user_config "${raw_url}/%%HEAT_GIT_VERSION%%/rpc_user_config.yml"
-sed -i "s/__ENVIRONMENT_VERSION__/$environment_version/g" $rpc_user_config
-sed -i "s/__EXTERNAL_VIP_IP__/%%EXTERNAL_VIP_IP%%/g" $rpc_user_config
-sed -i "s/__CLUSTER_PREFIX__/%%CLUSTER_PREFIX%%/g" $rpc_user_config
+curl -o $openstack_user_config "${raw_url}/%%HEAT_GIT_VERSION%%/openstack_user_config.yml"
+sed -i "s/__ENVIRONMENT_VERSION__/$environment_version/g" $openstack_user_config
+sed -i "s/__EXTERNAL_VIP_IP__/%%EXTERNAL_VIP_IP%%/g" $openstack_user_config
+sed -i "s/__CLUSTER_PREFIX__/%%CLUSTER_PREFIX%%/g" $openstack_user_config
 
 if [ "%%DEPLOY_SWIFT%%" = "True" ]; then
   curl -o $swift_config "${raw_url}/%%HEAT_GIT_VERSION%%/swift.yml"

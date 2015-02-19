@@ -172,6 +172,14 @@ openstack_user_config="/etc/openstack_deploy/openstack_user_config.yml"
 swift_config="/etc/openstack_deploy/conf.d/swift.yml"
 user_variables="/etc/openstack_deploy/user_variables.yml"
 
+
+DEPLOY_INFRASTRUCTURE=%%DEPLOY_INFRASTRUCTURE%%
+DEPLOY_LOGGING=%%DEPLOY_LOGGING%%
+DEPLOY_OPENSTACK=%%DEPLOY_OPENSTACK%%
+DEPLOY_SWIFT=%%DEPLOY_SWIFT%%
+DEPLOY_TEMPEST=%%DEPLOY_TEMPEST%%
+DEPLOY_MONITORING=%%DEPLOY_MONITORING%%
+
 echo -n "%%PRIVATE_KEY%%" > .ssh/id_rsa
 chmod 600 .ssh/*
 
@@ -222,6 +230,13 @@ fi
 
 # here we run ansible using the run-playbooks script in the ansible repo
 if [ "%%RUN_ANSIBLE%%" = "True" ]; then
+  # the run-playbooks script wants yes/no rather than true/false
+  for i in DEPLOY_LOGGING DEPLOY_INFRASTRUCTURE DEPLOY_OPENSTACK DEPLOY_SWIFT DEPLOY_TEMPEST; do
+      if [ "${i}" = "True" ]; then
+          "${i}" = "yes"
+      else "${i}" = "no"
+      fi
+  done
   cd /root/os-ansible-deployment/scripts
   ./run-playbooks.sh
 fi

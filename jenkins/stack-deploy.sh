@@ -18,12 +18,7 @@ TEMPEST_SCRIPT_PARAMETERS=${TEMPEST_SCRIPT_PARAMETERS:-"nightly_heat_multinode"}
 
 
 ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "cd ${CHECKOUT} && scripts/bootstrap-ansible.sh"
-ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "cd ${CHECKOUT} && ANSIBLE_FORCE_COLOR=true scripts/run-playbooks.sh"
-
-# Temporary work-around otherwise we hit https://bugs.launchpad.net/neutron/+bug/1382064
-# which results in tempest tests failing
-ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "sed -i 's/api_workers = 10/api_workers = 0/' ${CHECKOUT}/rpc_deployment/roles/neutron_common/templates/neutron.conf"
-ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "sed -i 's/rpc_workers = 5/rpc_workers = 0/' ${CHECKOUT}/rpc_deployment/roles/neutron_common/templates/neutron.conf"
+ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "export DEPLOY_LOGGING=${DEPLOY_LOGGING} DEPLOY_OPENSTACK=${DEPLOY_OPENSTACK} DEPLOY_SWIFT=${DEPLOY_SWIFT} DEPLOY_TEMPEST=${DEPLOY_TEMPEST} DEPLOY_MONITORING=${DEPLOY_MONITORING}; cd ${CHECKOUT} && ANSIBLE_FORCE_COLOR=true scripts/run-playbooks.sh"
 
 ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "ifconfig br-vlan 10.1.13.1 netmask 255.255.255.0"
 

@@ -54,40 +54,40 @@ parameters:
       - length: { min: 1, max: 14 }
 
   deploy_infrastructure:
-    type: boolean
+    type: string
     label: Deploy infrastructure playbooks
     description: Deploy infrastructure playbooks
-    default: true
+    default: yes
 
   deploy_logging:
-    type: boolean
+    type: string
     label: Deploy logging solution
     description: Deploy logging solution
-    default: true
+    default: yes
 
   deploy_openstack:
-    type: boolean
+    type: string
     label: Deploy openstack playbooks
     description: Deploy openstack playbooks
-    default: true
+    default: yes
 
   deploy_swift:
-    type: boolean
+    type: string
     label: Deploy swift
     description: Deploy swift
-    default: true
+    default: yes
 
   deploy_tempest:
-    type: boolean
+    type: string
     label: Deploy tempest
     description: Deploy tempest
-    default: false
+    default: yes
 
   deploy_monitoring:
-    type: boolean
+    type: string
     label: Deploy monitoring solution
     description: Deploy monitoring solution (this will only work on Rackspace Cloud Servers instances)
-    default: false
+    default: yes
 
   run_ansible:
     type: boolean

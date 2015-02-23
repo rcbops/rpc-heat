@@ -19,7 +19,7 @@ EOF
 
 ifup -a
 
-if [ "%%DEPLOY_SWIFT%%" = "True" ]; then
+if [ "%%DEPLOY_SWIFT%%" = "yes" ]; then
   pvcreate /dev/xvde1
   vgcreate swift /dev/xvde1
 

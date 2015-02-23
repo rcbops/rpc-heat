@@ -19,13 +19,13 @@ parameters:
     description: Name of key-pair to be used for compute instance
     default: default
 
-  rpc_git_repo:
+  os_ansible_git_repo:
     type: string
     label: RPC git repo
     description: URL of RPC git repo to clone
     default: https://github.com/stackforge/os-ansible-deployment
 
-  rpc_git_version:
+  os_ansible_git_version:
     type: string
     label: RPC version
     description: RPC version to install (master, juno, stable, 9.0.5, 10.1.1, etc.)
@@ -53,29 +53,41 @@ parameters:
       # on -nodeX which adds up to another 5 chars, hence max being 14.
       - length: { min: 1, max: 14 }
 
+  deploy_infrastructure:
+    type: string
+    label: Deploy infrastructure playbooks
+    description: Deploy infrastructure playbooks
+    default: yes
+
   deploy_logging:
-    type: boolean
+    type: string
     label: Deploy logging solution
     description: Deploy logging solution
-    default: true
+    default: yes
+
+  deploy_openstack:
+    type: string
+    label: Deploy openstack playbooks
+    description: Deploy openstack playbooks
+    default: yes
 
   deploy_tempest:
-    type: boolean
+    type: string
     label: Deploy tempest
     description: Deploy tempest
-    default: false
+    default: no
 
   deploy_swift:
-    type: boolean
+    type: string
     label: Deploy swift
     description: Deploy swift
-    default: true
+    default: yes
 
   deploy_monitoring:
-    type: boolean
+    type: string
     label: Deploy monitoring solution
     description: Deploy monitoring solution (this will only work on Rackspace Cloud Servers instances)
-    default: false
+    default: yes
 
   run_ansible:
     type: boolean
@@ -222,12 +234,14 @@ resources:
             "%%PRIVATE_KEY%%": { get_file: id_rsa }
             "%%PUBLIC_KEY%%": { get_file: id_rsa.pub }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
+            "%%DEPLOY_INFRASTRUCTURE%%": { get_param: deploy_infrastructure }
             "%%DEPLOY_LOGGING%%": { get_param: deploy_logging }
+            "%%DEPLOY_OPENSTACK%%": { get_param: deploy_openstack }
             "%%DEPLOY_TEMPEST%%": { get_param: deploy_tempest }
             "%%DEPLOY_SWIFT%%": { get_param: deploy_swift }
             "%%DEPLOY_MONITORING%%": { get_param: deploy_monitoring }
-            "%%RPC_GIT_REPO%%": { get_param: rpc_git_repo }
-            "%%RPC_GIT_VERSION%%": { get_param: rpc_git_version }
+            "%%OS_ANSIBLE_GIT_REPO%%": { get_param: os_ansible_git_repo }
+            "%%OS_ANSIBLE_GIT_VERSION%%": { get_param: os_ansible_git_version }
             "%%HEAT_GIT_REPO%%": { get_param: heat_git_repo }
             "%%HEAT_GIT_VERSION%%": { get_param: heat_git_version }
             "%%RACKSPACE_CLOUD_API_KEY%%": { get_param: rackspace_cloud_api_key }

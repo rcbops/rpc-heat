@@ -107,7 +107,7 @@ global_overrides:
         container_interface: "eth5"
         container_type: "veth"
         type: "flat"
-        net_name: "vlan"
+        net_name: "flat"
   # Name of load balancer
   lb_name: lb_name_in_core
 

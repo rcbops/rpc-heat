@@ -1,7 +1,7 @@
 openstack_user_config="/etc/openstack_deploy/openstack_user_config.yml"
 swift_config="/etc/openstack_deploy/conf.d/swift.yml"
 user_variables="/etc/openstack_deploy/user_variables.yml"
-
+user_secrets="/etc/openstack_deploy/user_secrets.yml"
 
 DEPLOY_INFRASTRUCTURE=%%DEPLOY_INFRASTRUCTURE%%
 DEPLOY_LOGGING=%%DEPLOY_LOGGING%%
@@ -21,7 +21,7 @@ cd os-ansible-deployment
 pip install -r requirements.txt
 cp -a etc/openstack_deploy /etc/
 
-scripts/pw-token-gen.py --file /etc/openstack_deploy/user_secrets.yml
+scripts/pw-token-gen.py --file $user_secrets
 echo "nova_virt_type: qemu" >> $user_variables
 echo "lb_name: %%CLUSTER_PREFIX%%-node3" >> $user_variables
 # Temporary work-around otherwise we hit https://bugs.launchpad.net/neutron/+bug/1382064
@@ -29,21 +29,22 @@ echo "lb_name: %%CLUSTER_PREFIX%%-node3" >> $user_variables
 echo "neutron_api_workers: 0" >> $user_variables
 echo "neutron_rpc_workers: 0" >> $user_variables
 
-sed -i "s#\(rackspace_cloud_auth_url\): .*#\1: %%RACKSPACE_CLOUD_AUTH_URL%%#g" $user_variables
-sed -i "s/\(rackspace_cloud_tenant_id\): .*/\1: %%RACKSPACE_CLOUD_TENANT_ID%%/g" $user_variables
-sed -i "s/\(rackspace_cloud_username\): .*/\1: %%RACKSPACE_CLOUD_USERNAME%%/g" $user_variables
-sed -i "s/\(rackspace_cloud_password\): .*/\1: %%RACKSPACE_CLOUD_PASSWORD%%/g" $user_variables
-sed -i "s/\(rackspace_cloud_api_key\): .*/\1: %%RACKSPACE_CLOUD_API_KEY%%/g" $user_variables
-sed -i "s/\(glance_default_store\): .*/\1: %%GLANCE_DEFAULT_STORE%%/g" $user_variables
-sed -i "s/\(maas_notification_plan\): .*/\1: npTechnicalContactsEmail/g" $user_variables
+echo "rackspace_cloud_auth_url: %%RACKSPACE_CLOUD_AUTH_URL%%" >> $user_variables
+echo "rackspace_cloud_tenant_id: %%RACKSPACE_CLOUD_TENANT_ID%%" >> $user_variables
+echo "rackspace_cloud_username: %%RACKSPACE_CLOUD_USERNAME%%" >> $user_variables
+echo "rackspace_cloud_password: %%RACKSPACE_CLOUD_PASSWORD%%" >> $user_variables
+echo "rackspace_cloud_api_key: %%RACKSPACE_CLOUD_API_KEY%%" >> $user_variables
+echo "maas_notification_plan: npTechnicalContactsEmail" >> $user_variables
 
-if [ "%%DEPLOY_SWIFT%%" = "True" ]; then
-  sed -i "s/\(glance_swift_store_auth_address\): .*/\1: '{{ auth_identity_uri }}'/" $user_variables
-  sed -i "s/\(glance_swift_store_key\): .*/\1: '{{ glance_service_password }}'/" $user_variables
-  sed -i "s/\(glance_swift_store_region\): .*/\1: RegionOne/" $user_variables
-  sed -i "s/\(glance_swift_store_user\): .*/\1: 'service:glance'/" $user_variables
+sed -i "s/\(glance_default_store\): .*/\1: %%GLANCE_DEFAULT_STORE%%/g" $user_variables
+
+if [ "%%DEPLOY_SWIFT%%" = "yes" ]; then
+  sed -i "s/\(glance_swift_store_auth_address\): .*/\1: '{{ keystone_service_internaluri }}'/" $user_secrets
+  sed -i "s/\(glance_swift_store_key\): .*/\1: '{{ glance_service_password }}'/" $user_secrets
+  sed -i "s/\(glance_swift_store_region\): .*/\1: RegionOne/" $user_secrets
+  sed -i "s/\(glance_swift_store_user\): .*/\1: 'service:glance'/" $user_secrets
 else
-  sed -i "s/\(glance_swift_store_region\): .*/\1: %%GLANCE_SWIFT_STORE_REGION%%/g" $user_variables
+  sed -i "s/\(glance_swift_store_region\): .*/\1: %%GLANCE_SWIFT_STORE_REGION%%/g" $user_secrets
 fi
 
 environment_version=$(md5sum /etc/openstack_deploy/openstack_environment.yml | awk '{print $1}')

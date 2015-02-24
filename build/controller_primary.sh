@@ -39,7 +39,7 @@ echo "maas_notification_plan: npTechnicalContactsEmail" >> $user_variables
 sed -i "s/\(glance_default_store\): .*/\1: %%GLANCE_DEFAULT_STORE%%/g" $user_variables
 
 if [ "%%DEPLOY_SWIFT%%" = "yes" ]; then
-  sed -i "s/\(glance_swift_store_auth_address\): .*/\1: '{{ keystone_service_internaluri }}'/" $user_secrets
+  sed -i "s/\(glance_swift_store_auth_address\): .*/\1: '{{ keystone_service_internalurl }}'/" $user_secrets
   sed -i "s/\(glance_swift_store_key\): .*/\1: '{{ glance_service_password }}'/" $user_secrets
   sed -i "s/\(glance_swift_store_region\): .*/\1: RegionOne/" $user_secrets
   sed -i "s/\(glance_swift_store_user\): .*/\1: 'service:glance'/" $user_secrets

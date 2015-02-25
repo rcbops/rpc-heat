@@ -394,9 +394,3 @@ outputs:
   compute2_ip:
     description: The IP address of compute2
     value: { get_attr: [compute2, accessIPv4] }
-  ansible_public_key:
-    description: Public key of generated keypair
-    value: { get_attr: [ansible_keypair, public_key] }
-  ansible_private_key:
-    description: Private key of generated keypair
-    value: { get_attr: [ansible_keypair, private_key] }

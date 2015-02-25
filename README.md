@@ -1,7 +1,6 @@
 To run:
 
 ```
-ssh-keygen -f id_rsa -t rsa -q -N ""
 heat stack-create -f rpc_multi_node.yml rpc -P "key_name=<keyname>;rpc_git_version=<branch/tag>" -t 150
 ```
 

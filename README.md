@@ -1,7 +1,6 @@
 To run:
 
 ```
-ssh-keygen -f id_rsa -t rsa -q -N ""
 heat stack-create -f openstack_multi_node.yml openstack-multi -P "key_name=<keyname>;os_ansible_git_version=<branch/tag>" -t 150
 ```
 

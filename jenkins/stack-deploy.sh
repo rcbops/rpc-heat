@@ -27,7 +27,7 @@ ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "export DEPLOY_LOGGING=${DEPLO
 ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "ifconfig br-vlan 10.1.13.1 netmask 255.255.255.0"
 
 if [ $DEPLOY_TEMPEST = "yes" ]; then
-  ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "export TEMPEST_SCRIPT_PARAMETERS; cd ${CHECKOUT} && scripts/run-tempest.sh"
+  ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "export TEMPEST_SCRIPT_PARAMETERS=${TEMPEST_SCRIPT_PARAMETERS}; cd ${CHECKOUT} && scripts/run-tempest.sh"
 fi
 
 #if [ $DEPLOY_MONITORING = "true" ]; then

@@ -100,12 +100,14 @@ parameters:
     label: Rackspace Cloud API Key
     description: Rackspace Cloud API Key
     default: SomeAPIKey
+    hidden: True
 
   rackspace_cloud_auth_url:
     type: string
     label: Rackspace Cloud Auth URL
     description: Rackspace Cloud Auth URL
     default: https://identity.api.rackspacecloud.com/v2.0
+    hidden: True
 
   rackspace_cloud_password:
     type: string
@@ -119,12 +121,14 @@ parameters:
     label: Rackspace Cloud Tenant ID
     description: Rackspace Cloud Tenant ID
     default: SomeTenantID
+    hidden: True
 
   rackspace_cloud_username:
     type: string
     label: Rackspace Cloud Username
     description: Rackspace Cloud Username
     default: SomeUserName
+    hidden: True
 
   glance_default_store:
     type: string

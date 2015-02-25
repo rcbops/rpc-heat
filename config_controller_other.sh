@@ -7,36 +7,6 @@ export HOME=${HOME:-"/root"}
 INTERFACES="/etc/network/interfaces"
 INTERFACES_D="/etc/network/interfaces.d"
 
-if [ "%%DEPLOY_LOGGING%%" = "True" ]; then
-  LOGGING_ENABLED=1
-else
-  LOGGING_ENABLED=0
-fi
-
-if [ "%%DEPLOY_SWIFT%%" = "True" ]; then
-  SWIFT_ENABLED=1
-else
-  SWIFT_ENABLED=0
-fi
-
-if [ "%%DEPLOY_TEMPEST%%" = "True" ]; then
-  TEMPEST_ENABLED=1
-else
-  TEMPEST_ENABLED=0
-fi
-
-if [ "%%DEPLOY_MONITORING%%" = "True" ]; then
-  MONITORING_ENABLED=1
-else
-  MONITORING_ENABLED=0
-fi
-
-if [ "%%RUN_ANSIBLE%%" = "True" ]; then
-  RUN_ANSIBLE=1
-else
-  RUN_ANSIBLE=0
-fi
-
 apt-get update
 apt-get install -y python-dev python-pip bridge-utils git lvm2 vim xfsprogs
 
@@ -185,7 +155,7 @@ EOF
 
 ifup -a
 
-if [ $SWIFT_ENABLED -eq 1 ]; then
+if [ "%%DEPLOY_SWIFT%%" = "yes" ]; then
   pvcreate /dev/xvde1
   vgcreate swift /dev/xvde1
 

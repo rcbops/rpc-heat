@@ -36,7 +36,7 @@ used_ips:
   - 172.29.244.1,172.29.244.50
 
 # As a user you can define anything that you may wish to "globally"
-# override from within the rpc_deploy configuration file. Anything
+# override from within the openstack_deploy configuration file. Anything
 # specified here will take precedence over anything else any where.
 global_overrides:
   # Internal Management vip address
@@ -65,7 +65,10 @@ global_overrides:
         type: "raw"
         container_bridge: "br-mgmt"
         container_interface: "eth1"
+        container_type: "veth"
         ip_from_q: "container"
+        is_container_address: true
+        is_ssh_address: true
     - network:
         group_binds:
           - glance_api
@@ -75,6 +78,7 @@ global_overrides:
         type: "raw"
         container_bridge: "br-storage"
         container_interface: "eth2"
+        container_type: "veth"
         ip_from_q: "storage"
     - network:
         group_binds:
@@ -84,12 +88,14 @@ global_overrides:
         type: "raw"
         container_bridge: "br-snet"
         container_interface: "eth3"
+        container_type: "veth"
         ip_from_q: "snet"
     - network:
         group_binds:
           - neutron_linuxbridge_agent
         container_bridge: "br-vxlan"
         container_interface: "eth4"
+        container_type: "veth"
         ip_from_q: "tunnel"
         type: "vxlan"
         range: "10:1000"
@@ -99,13 +105,46 @@ global_overrides:
           - neutron_linuxbridge_agent
         container_bridge: "br-vlan"
         container_interface: "eth5"
+        container_type: "veth"
         type: "flat"
-        net_name: "vlan"
+        net_name: "flat"
   # Name of load balancer
   lb_name: lb_name_in_core
 
 # User defined Infrastructure Hosts, this should be a required group
-infra_hosts:
+shared-infra_hosts:
+  __CLUSTER_PREFIX__-node1:
+    ip: 172.29.236.1
+  __CLUSTER_PREFIX__-node2:
+    ip: 172.29.236.2
+  __CLUSTER_PREFIX__-node3:
+    ip: 172.29.236.3
+
+os-infra_hosts:
+  __CLUSTER_PREFIX__-node1:
+    ip: 172.29.236.1
+  __CLUSTER_PREFIX__-node2:
+    ip: 172.29.236.2
+  __CLUSTER_PREFIX__-node3:
+    ip: 172.29.236.3
+
+storage-infra_hosts:
+  __CLUSTER_PREFIX__-node1:
+    ip: 172.29.236.1
+  __CLUSTER_PREFIX__-node2:
+    ip: 172.29.236.2
+  __CLUSTER_PREFIX__-node3:
+    ip: 172.29.236.3
+
+repo-infra_hosts:
+  __CLUSTER_PREFIX__-node1:
+    ip: 172.29.236.1
+  __CLUSTER_PREFIX__-node2:
+    ip: 172.29.236.2
+  __CLUSTER_PREFIX__-node3:
+    ip: 172.29.236.3
+
+identity_hosts:
   __CLUSTER_PREFIX__-node1:
     ip: 172.29.236.1
   __CLUSTER_PREFIX__-node2:

@@ -225,6 +225,8 @@ sed -i "s/__CLUSTER_PREFIX__/%%CLUSTER_PREFIX%%/g" $rpc_user_config
 if [ "%%DEPLOY_SWIFT%%" = "yes" ]; then
   curl -o $swift_config "${raw_url}/%%HEAT_GIT_VERSION%%/swift.yml"
   sed -i "s/__CLUSTER_PREFIX__/%%CLUSTER_PREFIX%%/g" $swift_config
+else
+  test -f $swift_config && rm $swift_config
 fi
 
 # here we run ansible using the run-playbooks script in the ansible repo

@@ -117,8 +117,12 @@ shared-infra_hosts:
     ip: 172.29.236.1
   __CLUSTER_PREFIX__-node2:
     ip: 172.29.236.2
+    affinity:
+      utility_container: 0
   __CLUSTER_PREFIX__-node3:
     ip: 172.29.236.3
+    affinity:
+      utility_container: 0
 
 os-infra_hosts:
   __CLUSTER_PREFIX__-node1:

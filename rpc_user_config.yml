@@ -110,8 +110,12 @@ infra_hosts:
     ip: 172.29.236.1
   __CLUSTER_PREFIX__-node2:
     ip: 172.29.236.2
+    affinity:
+      utility_container: 0
   __CLUSTER_PREFIX__-node3:
     ip: 172.29.236.3
+    affinity:
+      utility_container: 0
 
 # User defined Compute Hosts, this should be a required group
 compute_hosts:

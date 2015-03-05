@@ -178,6 +178,7 @@ DEPLOY_OPENSTACK=%%DEPLOY_OPENSTACK%%
 DEPLOY_SWIFT=%%DEPLOY_SWIFT%%
 DEPLOY_TEMPEST=%%DEPLOY_TEMPEST%%
 DEPLOY_MONITORING=%%DEPLOY_MONITORING%%
+GERRIT_REFSPEC=%%GERRIT_REFSPEC%%
 
 echo -n "%%PRIVATE_KEY%%" > .ssh/id_rsa
 chmod 600 .ssh/*
@@ -187,6 +188,13 @@ if [ ! -e /root/os-ansible-deployment ]; then
 fi
 
 cd os-ansible-deployment
+if [ ! -z $GERRIT_REFSPEC ]; then
+  # Git creates a commit while merging so identity must be set.
+  git config --global user.name "Hot Hot Heat"
+  git config --global user.email "flaming@li.ps"
+  git fetch https://review.openstack.org/stackforge/os-ansible-deployment $GERRIT_REFSPEC
+  git merge FETCH_HEAD
+fi
 pip install -r requirements.txt
 cp -a etc/rpc_deploy /etc/
 

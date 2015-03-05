@@ -146,6 +146,10 @@ parameters:
     constraints:
       - allowed_values: [ DFW, HKG, IAD, LON, ORD, SYD ]
 
+  gerrit_refspec:
+    type: string
+    label: Git reference for the patch to test
+
 resources:
   controller1_wait:
     type: "OS::Heat::SwiftSignal"
@@ -267,6 +271,7 @@ resources:
             "%%GLANCE_SWIFT_STORE_REGION%%": { get_param: glance_swift_store_region }
             "%%RUN_ANSIBLE%%": { get_param: run_ansible }
             "%%CURL_CLI%%": { get_attr: ['controller1_wait_handle', 'curl_cli'] }
+            "%%GERRIT_REFSPEC%%": { get_param: gerrit_refspec }
 
   controller2:
     type: "OS::Nova::Server"

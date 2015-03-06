@@ -243,10 +243,15 @@ else
   test -f $swift_config && rm $swift_config
 fi
 
+cd /root/os-ansible-deployment
+
 # here we run ansible using the run-playbooks script in the ansible repo
 if [ "%%RUN_ANSIBLE%%" = "True" ]; then
-  cd /root/os-ansible-deployment
   scripts/bootstrap-ansible.sh
   scripts/run-playbooks.sh
+fi
+if [ "%%RUN_TEMPEST%%" = "True" ]; then
+  export TEMPEST_SCRIPT_PARAMETERS="%%TEMPEST_SCRIPT_PARAMETERS%%"
+  scripts/run-tempest.sh
 fi
 %%CURL_CLI%% --data-binary '{"status": "SUCCESS"}'

@@ -108,8 +108,6 @@ global_overrides:
         container_type: "veth"
         type: "flat"
         net_name: "flat"
-  # Name of load balancer
-  lb_name: lb_name_in_core
 
 # User defined Infrastructure Hosts, this should be a required group
 shared-infra_hosts:
@@ -192,8 +190,12 @@ log_hosts:
 
 # User defined Networking Hosts, this should be a required group
 network_hosts:
+  __CLUSTER_PREFIX__-node1:
+    ip: 172.29.236.1
   __CLUSTER_PREFIX__-node2:
     ip: 172.29.236.2
+  __CLUSTER_PREFIX__-node3:
+    ip: 172.29.236.3
 
 haproxy_hosts:
   __CLUSTER_PREFIX__-node3:

@@ -149,6 +149,7 @@ parameters:
   gerrit_refspec:
     type: string
     label: Git reference for the patch to test
+    default: ''
 
 resources:
   controller1_wait:

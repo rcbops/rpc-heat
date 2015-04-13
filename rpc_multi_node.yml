@@ -150,6 +150,16 @@ parameters:
     type: string
     label: Git reference for the patch to test
 
+  run_tempest:
+    type: boolean
+    label: Run tempest after deploying
+    default: false
+
+  tempest_script_parameters:
+    type: string
+    label: parameters to pass to pass to run-tempest which calls openstack_tempest_gate
+    default: nightly_heat_multinode
+
 resources:
   controller1_wait:
     type: "OS::Heat::SwiftSignal"
@@ -256,6 +266,8 @@ resources:
             "%%DEPLOY_LOGGING%%": { get_param: deploy_logging }
             "%%DEPLOY_OPENSTACK%%": { get_param: deploy_openstack }
             "%%DEPLOY_TEMPEST%%": { get_param: deploy_tempest }
+            "%%RUN_TEMPEST%%": { get_param: run_tempest }
+            "%%TEMPEST_SCRIPT_PARAMETERS%%": { get_param: tempest_script_parameters }
             "%%DEPLOY_SWIFT%%": { get_param: deploy_swift }
             "%%DEPLOY_MONITORING%%": { get_param: deploy_monitoring }
             "%%OS_ANSIBLE_GIT_REPO%%": { get_param: os_ansible_git_repo }

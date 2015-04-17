@@ -159,7 +159,7 @@ parameters:
   tempest_script_parameters:
     type: string
     label: parameters to pass to pass to run-tempest which calls openstack_tempest_gate
-    default: nightly_heat_multinode
+    default: smoke
 
 resources:
   controller1_wait:

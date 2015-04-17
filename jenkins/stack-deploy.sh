@@ -15,7 +15,7 @@ DEPLOY_SWIFT=${DEPLOY_SWIFT:-"no"}
 DEPLOY_TEMPEST=${DEPLOY_TEMPEST:-"no"}
 RUN_TEMPEST=${RUN_TEMPEST:-"yes"}
 DEPLOY_MONITORING=${DEPLOY_MONITORING:-"no"}
-TEMPEST_SCRIPT_PARAMETERS=${TEMPEST_SCRIPT_PARAMETERS:-"nightly_heat_multinode"}
+TEMPEST_SCRIPT_PARAMETERS=${TEMPEST_SCRIPT_PARAMETERS:-"smoke"}
 
 # Temporary work-around otherwise we hit https://bugs.launchpad.net/neutron/+bug/1382064
 # which results in tempest tests failing

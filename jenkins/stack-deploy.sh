@@ -23,7 +23,9 @@ ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "cd ${CHECKOUT} && scripts/boo
 ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "echo 'tempest_compute_run_ssh: False' >> /etc/openstack_deploy/user_variables.yml"
 ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "export DEPLOY_LOGGING=${DEPLOY_LOGGING} DEPLOY_OPENSTACK=${DEPLOY_OPENSTACK} DEPLOY_SWIFT=${DEPLOY_SWIFT} DEPLOY_TEMPEST=${DEPLOY_TEMPEST} DEPLOY_MONITORING=${DEPLOY_MONITORING}; cd ${CHECKOUT} && ANSIBLE_FORCE_COLOR=true scripts/run-playbooks.sh"
 
-ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "ifconfig br-vlan 10.1.13.1 netmask 255.255.255.0"
+ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "/sbin/ifconfig br-vlan 10.1.13.1 netmask 255.255.255.0"
+# This allows instances to be able to reach public Internet
+ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "/sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE"
 
 if [ $RUN_TEMPEST = "yes" ]; then
   ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "export TEMPEST_SCRIPT_PARAMETERS=${TEMPEST_SCRIPT_PARAMETERS}; cd ${CHECKOUT} && scripts/run-tempest.sh"

@@ -37,11 +37,15 @@ echo "lb_name: %%CLUSTER_PREFIX%%-node3" >> $user_variables
 echo "neutron_api_workers: 0" >> $user_variables
 echo "neutron_rpc_workers: 0" >> $user_variables
 
-echo "rackspace_cloud_auth_url: %%RACKSPACE_CLOUD_AUTH_URL%%" >> $user_variables
-echo "rackspace_cloud_tenant_id: %%RACKSPACE_CLOUD_TENANT_ID%%" >> $user_variables
-echo "rackspace_cloud_username: %%RACKSPACE_CLOUD_USERNAME%%" >> $user_variables
-echo "rackspace_cloud_password: %%RACKSPACE_CLOUD_PASSWORD%%" >> $user_variables
-echo "rackspace_cloud_api_key: %%RACKSPACE_CLOUD_API_KEY%%" >> $user_variables
+# These vars are now set in rpc-extras/etc/openstack_deploy/user_extras_variables.yml.
+# TODO: Always check out rpc-extras and throw these variables into
+#       /etc/openstack_deploy/user_extras_variables.yml.  We can then update the glance
+#       variables below to point to these variables instead.
+#echo "rackspace_cloud_auth_url: %%RACKSPACE_CLOUD_AUTH_URL%%" >> $user_variables
+#echo "rackspace_cloud_tenant_id: %%RACKSPACE_CLOUD_TENANT_ID%%" >> $user_variables
+#echo "rackspace_cloud_username: %%RACKSPACE_CLOUD_USERNAME%%" >> $user_variables
+#echo "rackspace_cloud_password: %%RACKSPACE_CLOUD_PASSWORD%%" >> $user_variables
+#echo "rackspace_cloud_api_key: %%RACKSPACE_CLOUD_API_KEY%%" >> $user_variables
 echo "maas_notification_plan: npTechnicalContactsEmail" >> $user_variables
 
 sed -i "s/\(glance_default_store\): .*/\1: %%GLANCE_DEFAULT_STORE%%/g" $user_variables
@@ -52,6 +56,9 @@ if [ "%%DEPLOY_SWIFT%%" = "yes" ]; then
   sed -i "s/\(glance_swift_store_region\): .*/\1: RegionOne/" $user_secrets
   sed -i "s/\(glance_swift_store_user\): .*/\1: 'service:glance'/" $user_secrets
 else
+  sed -i "s/\(glance_swift_store_auth_address\): .*/\1: '%%RACKSPACE_CLOUD_AUTH_URL%%'/" $user_secrets
+  sed -i "s/\(glance_swift_store_user\): .*/\1: '%%RACKSPACE_CLOUD_TENANT_ID%%:%%RACKSPACE_CLOUD_USERNAME%%'/" $user_secrets
+  sed -i "s/\(glance_swift_store_key\): .*/\1: '%%RACKSPACE_CLOUD_PASSWORD%%'/" $user_secrets
   sed -i "s/\(glance_swift_store_region\): .*/\1: %%GLANCE_SWIFT_STORE_REGION%%/g" $user_secrets
 fi
 

@@ -93,14 +93,14 @@ popd
 if [ "%%RUN_ANSIBLE%%" = "True" ]; then
   cd ${checkout_dir}/rpc-openstack/os-ansible-deployment
   scripts/run-playbooks.sh
-  if [ "$DEPLOY_MONITORING" = "yes" ]; then
-    cd ${checkout_dir}/rpc-openstack/rpcd/playbooks
+  pushd ${checkout_dir}/rpc-openstack/rpcd/playbooks
     openstack-ansible repo-build.yml
     openstack-ansible repo-pip-setup.yml
-    openstack-ansible setup-maas.yml
-  fi
+    if [ "$DEPLOY_MONITORING" = "yes" ]; then
+      openstack-ansible setup-maas.yml
+    fi
+  popd
   if [ "%%RUN_TEMPEST%%" = "True" ]; then
-    cd ${checkout_dir}/os-ansible-deployment
     export TEMPEST_SCRIPT_PARAMETERS="%%TEMPEST_SCRIPT_PARAMETERS%%"
     scripts/run-tempest.sh
   fi

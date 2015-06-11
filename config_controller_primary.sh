@@ -181,6 +181,7 @@ DEPLOY_SWIFT=%%DEPLOY_SWIFT%%
 DEPLOY_TEMPEST=%%DEPLOY_TEMPEST%%
 DEPLOY_MONITORING=%%DEPLOY_MONITORING%%
 GERRIT_REFSPEC=%%GERRIT_REFSPEC%%
+OS_ANSIBLE_GIT_VERSION=%%OS_ANSIBLE_GIT_VERSION%%
 
 echo -n "%%PRIVATE_KEY%%" > .ssh/id_rsa
 chmod 600 .ssh/*
@@ -192,14 +193,16 @@ if [ ! -e ${checkout_dir}/rpc-openstack ]; then
 fi
 
 cd ${checkout_dir}/rpc-openstack
-rm .gitmodules
-git rm os-ansible-deployment
-git submodule add %%OS_ANSIBLE_GIT_REPO%%
+if [ ! -z $OS_ANSIBLE_GIT_VERSION ]; then
+  rm .gitmodules
+  git rm os-ansible-deployment
+  git submodule add %%OS_ANSIBLE_GIT_REPO%%
+fi
 git submodule init
 git submodule update
 
 pushd os-ansible-deployment
-  git checkout %%OS_ANSIBLE_GIT_VERSION%%
+  git checkout $OS_ANSIBLE_GIT_VERSION
 
   if [ ! -z $GERRIT_REFSPEC ]; then
     # Git creates a commit while merging so identity must be set.

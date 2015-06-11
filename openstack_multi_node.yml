@@ -29,7 +29,9 @@ parameters:
     type: string
     label: os-ansible version
     description: os-ansible version to install (master, juno, stable, 9.0.5, 10.1.1, etc.)
-    default: master
+    # By default we will deploy the version of os-ansible-deployment defined as a submodule
+    # in rpc-openstack
+    default: ''
 
   heat_git_repo:
     type: string

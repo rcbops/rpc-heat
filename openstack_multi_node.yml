@@ -29,7 +29,9 @@ parameters:
     type: string
     label: os-ansible version
     description: os-ansible version to install (master, juno, stable, 9.0.5, 10.1.1, etc.)
-    default: master
+    # By default we will deploy the version of os-ansible-deployment defined as a submodule
+    # in rpc-openstack
+    default: ''
 
   heat_git_repo:
     type: string
@@ -43,6 +45,18 @@ parameters:
     description: Heat version to install
     default: master
 
+  rpc_openstack_git_repo:
+    type: string
+    label: rpc-openstack git repo
+    description: URL of rpc-openstack git repo to clone
+    default: https://github.com/rcbops/rpc-openstack
+
+  rpc_openstack_git_version:
+    type: string
+    label: rpc-openstack version
+    description: rpc-openstack version to install
+    default: master
+
   cluster_prefix:
     type: string
     label: Cluster prefix
@@ -53,41 +67,35 @@ parameters:
       # on -nodeX which adds up to another 5 chars, hence max being 14.
       - length: { min: 1, max: 14 }
 
-  deploy_infrastructure:
-    type: string
-    label: Deploy infrastructure playbooks
-    description: Deploy infrastructure playbooks
-    default: yes
-
   deploy_logging:
     type: string
     label: Deploy logging solution
     description: Deploy logging solution
-    default: yes
+    default: 'yes'
 
   deploy_openstack:
     type: string
     label: Deploy openstack playbooks
     description: Deploy openstack playbooks
-    default: yes
+    default: 'yes'
 
   deploy_swift:
     type: string
     label: Deploy swift
     description: Deploy swift
-    default: yes
+    default: 'yes'
 
   deploy_tempest:
     type: string
     label: Deploy tempest
     description: Deploy tempest
-    default: yes
+    default: 'yes'
 
   deploy_monitoring:
     type: string
     label: Deploy monitoring solution
     description: Deploy monitoring solution (this will only work on Rackspace Cloud Servers instances)
-    default: yes
+    default: 'yes'
 
   run_ansible:
     type: boolean
@@ -263,7 +271,6 @@ resources:
             "%%PRIVATE_KEY%%": { get_attr: [ansible_keypair, private_key] }
             "%%PUBLIC_KEY%%": { get_attr: [ansible_keypair, public_key] }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
-            "%%DEPLOY_INFRASTRUCTURE%%": { get_param: deploy_infrastructure }
             "%%DEPLOY_LOGGING%%": { get_param: deploy_logging }
             "%%DEPLOY_OPENSTACK%%": { get_param: deploy_openstack }
             "%%DEPLOY_TEMPEST%%": { get_param: deploy_tempest }
@@ -275,6 +282,8 @@ resources:
             "%%OS_ANSIBLE_GIT_VERSION%%": { get_param: os_ansible_git_version }
             "%%HEAT_GIT_REPO%%": { get_param: heat_git_repo }
             "%%HEAT_GIT_VERSION%%": { get_param: heat_git_version }
+            "%%RPC_OPENSTACK_GIT_REPO%%": { get_param: rpc_openstack_git_repo }
+            "%%RPC_OPENSTACK_GIT_VERSION%%": { get_param: rpc_openstack_git_version }
             "%%RACKSPACE_CLOUD_API_KEY%%": { get_param: rackspace_cloud_api_key }
             "%%RACKSPACE_CLOUD_AUTH_URL%%": { get_param: rackspace_cloud_auth_url }
             "%%RACKSPACE_CLOUD_PASSWORD%%": { get_param: rackspace_cloud_password }

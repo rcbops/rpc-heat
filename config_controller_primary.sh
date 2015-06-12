@@ -168,90 +168,114 @@ if [ "%%DEPLOY_SWIFT%%" = "yes" ]; then
   done
 fi
 
-openstack_user_config="/etc/openstack_deploy/openstack_user_config.yml"
-swift_config="/etc/openstack_deploy/conf.d/swift.yml"
-user_variables="/etc/openstack_deploy/user_variables.yml"
-user_secrets="/etc/openstack_deploy/user_secrets.yml"
+checkout_dir="/opt"
+config_dir="/etc/openstack_deploy"
+openstack_user_config="${config_dir}/openstack_user_config.yml"
+swift_config="${config_dir}/conf.d/swift.yml"
+user_variables="${config_dir}/user_variables.yml"
+user_secrets="${config_dir}/user_secrets.yml"
 
-DEPLOY_INFRASTRUCTURE=%%DEPLOY_INFRASTRUCTURE%%
 DEPLOY_LOGGING=%%DEPLOY_LOGGING%%
 DEPLOY_OPENSTACK=%%DEPLOY_OPENSTACK%%
 DEPLOY_SWIFT=%%DEPLOY_SWIFT%%
 DEPLOY_TEMPEST=%%DEPLOY_TEMPEST%%
 DEPLOY_MONITORING=%%DEPLOY_MONITORING%%
 GERRIT_REFSPEC=%%GERRIT_REFSPEC%%
+OS_ANSIBLE_GIT_VERSION=%%OS_ANSIBLE_GIT_VERSION%%
 
 echo -n "%%PRIVATE_KEY%%" > .ssh/id_rsa
 chmod 600 .ssh/*
 
-if [ ! -e /root/os-ansible-deployment ]; then
-  git clone -b %%OS_ANSIBLE_GIT_VERSION%% %%OS_ANSIBLE_GIT_REPO%% os-ansible-deployment
+cd $checkout_dir
+
+if [ ! -e ${checkout_dir}/rpc-openstack ]; then
+  git clone -b %%RPC_OPENSTACK_GIT_VERSION%% %%RPC_OPENSTACK_GIT_REPO%%
 fi
 
-cd os-ansible-deployment
-if [ ! -z $GERRIT_REFSPEC ]; then
-  # Git creates a commit while merging so identity must be set.
-  git config --global user.name "Hot Hot Heat"
-  git config --global user.email "flaming@li.ps"
-  git fetch https://review.openstack.org/stackforge/os-ansible-deployment $GERRIT_REFSPEC
-  git merge FETCH_HEAD
+cd ${checkout_dir}/rpc-openstack
+if [ ! -z $OS_ANSIBLE_GIT_VERSION ]; then
+  rm .gitmodules
+  git rm os-ansible-deployment
+  git submodule add %%OS_ANSIBLE_GIT_REPO%%
 fi
-pip install -r requirements.txt
-cp -a etc/openstack_deploy /etc/
+git submodule init
+git submodule update
 
-scripts/pw-token-gen.py --file $user_secrets
-echo "nova_virt_type: qemu" >> $user_variables
-echo "lb_name: %%CLUSTER_PREFIX%%-node3" >> $user_variables
-# Temporary work-around otherwise we hit https://bugs.launchpad.net/neutron/+bug/1382064
-# which results in tempest tests failing
-echo "neutron_api_workers: 0" >> $user_variables
-echo "neutron_rpc_workers: 0" >> $user_variables
+pushd os-ansible-deployment
+  git checkout $OS_ANSIBLE_GIT_VERSION
 
-echo "rackspace_cloud_auth_url: %%RACKSPACE_CLOUD_AUTH_URL%%" >> $user_variables
-echo "rackspace_cloud_tenant_id: %%RACKSPACE_CLOUD_TENANT_ID%%" >> $user_variables
-echo "rackspace_cloud_username: %%RACKSPACE_CLOUD_USERNAME%%" >> $user_variables
-echo "rackspace_cloud_password: %%RACKSPACE_CLOUD_PASSWORD%%" >> $user_variables
-echo "rackspace_cloud_api_key: %%RACKSPACE_CLOUD_API_KEY%%" >> $user_variables
-echo "maas_notification_plan: npTechnicalContactsEmail" >> $user_variables
+  if [ ! -z $GERRIT_REFSPEC ]; then
+    # Git creates a commit while merging so identity must be set.
+    git config --global user.name "Hot Hot Heat"
+    git config --global user.email "flaming@li.ps"
+    git fetch https://review.openstack.org/stackforge/os-ansible-deployment $GERRIT_REFSPEC
+    git merge FETCH_HEAD
+  fi
 
-sed -i "s/\(glance_default_store\): .*/\1: %%GLANCE_DEFAULT_STORE%%/g" $user_variables
+  scripts/bootstrap-ansible.sh
+  cp -a etc/openstack_deploy /etc/
 
-if [ "%%DEPLOY_SWIFT%%" = "yes" ]; then
-  sed -i "s/\(glance_swift_store_auth_address\): .*/\1: '{{ keystone_service_internalurl }}'/" $user_secrets
-  sed -i "s/\(glance_swift_store_key\): .*/\1: '{{ glance_service_password }}'/" $user_secrets
-  sed -i "s/\(glance_swift_store_region\): .*/\1: RegionOne/" $user_secrets
-  sed -i "s/\(glance_swift_store_user\): .*/\1: 'service:glance'/" $user_secrets
-else
-  sed -i "s/\(glance_swift_store_region\): .*/\1: %%GLANCE_SWIFT_STORE_REGION%%/g" $user_secrets
-fi
+  echo "nova_virt_type: qemu" >> $user_variables
+  sed -i "s/\(glance_default_store\): .*/\1: %%GLANCE_DEFAULT_STORE%%/g" $user_variables
 
-environment_version=$(md5sum /etc/openstack_deploy/openstack_environment.yml | awk '{print $1}')
+  environment_version=$(md5sum ${config_dir}/openstack_environment.yml | awk '{print $1}')
+  # if %%HEAT_GIT_REPO%% has .git at end (https://github.com/rcbops/rpc-heat.git),
+  # strip it off otherwise curl will 404
+  raw_url=$(echo %%HEAT_GIT_REPO%% | sed -e 's/\.git$//g' -e 's/github.com/raw.githubusercontent.com/g')
 
-# if %%HEAT_GIT_REPO%% has .git at end (https://github.com/rcbops/rpc-heat.git),
-# strip it off otherwise curl will 404
-raw_url=$(echo %%HEAT_GIT_REPO%% | sed -e 's/\.git$//g' -e 's/github.com/raw.githubusercontent.com/g')
+  curl -o $openstack_user_config "${raw_url}/%%HEAT_GIT_VERSION%%/openstack_user_config.yml"
+  sed -i "s/__ENVIRONMENT_VERSION__/$environment_version/g" $openstack_user_config
+  sed -i "s/__EXTERNAL_VIP_IP__/%%EXTERNAL_VIP_IP%%/g" $openstack_user_config
+  sed -i "s/__CLUSTER_PREFIX__/%%CLUSTER_PREFIX%%/g" $openstack_user_config
 
-curl -o $openstack_user_config "${raw_url}/%%HEAT_GIT_VERSION%%/openstack_user_config.yml"
-sed -i "s/__ENVIRONMENT_VERSION__/$environment_version/g" $openstack_user_config
-sed -i "s/__EXTERNAL_VIP_IP__/%%EXTERNAL_VIP_IP%%/g" $openstack_user_config
-sed -i "s/__CLUSTER_PREFIX__/%%CLUSTER_PREFIX%%/g" $openstack_user_config
+  if [ "$DEPLOY_SWIFT" = "yes" ]; then
+    curl -o $swift_config "${raw_url}/%%HEAT_GIT_VERSION%%/swift.yml"
+    sed -i "s/__CLUSTER_PREFIX__/%%CLUSTER_PREFIX%%/g" $swift_config
 
-if [ "%%DEPLOY_SWIFT%%" = "yes" ]; then
-  curl -o $swift_config "${raw_url}/%%HEAT_GIT_VERSION%%/swift.yml"
-  sed -i "s/__CLUSTER_PREFIX__/%%CLUSTER_PREFIX%%/g" $swift_config
-else
-  test -f $swift_config && rm $swift_config
-fi
+    sed -i "s/#\(glance_swift_store_auth_address\): .*/\1: '{{ keystone_service_internalurl }}'/" $user_variables
+    sed -i "s/#\(glance_swift_store_user\): .*/\1: 'service:glance'/" $user_variables
+    sed -i "s/#\(glance_swift_store_key\): .*/\1: '{{ glance_service_password }}'/" $user_variables
+    sed -i "s/#\(glance_swift_store_region\): .*/\1: RegionOne/" $user_variables
+  else
+    sed -i "s/#\(glance_swift_store_auth_address\): .*/\1: '{{ rackspace_cloud_auth_url }}'/" $user_variables
+    sed -i "s/#\(glance_swift_store_user\): .*/\1: '{ rackspace_cloud_tenant_id }}:{{ rackspace_cloud_username }}'/" $user_variables
+    sed -i "s/#\(glance_swift_store_key\): .*/\1: '{{ rackspace_cloud_password }}'/" $user_variables
+    sed -i "s/#\(glance_swift_store_region\): .*/\1: %%GLANCE_SWIFT_STORE_REGION%%/g" $user_variables
 
-cd /root/os-ansible-deployment
+    test -f $swift_config && rm $swift_config
+  fi
+
+  scripts/pw-token-gen.py --file $user_secrets
+popd
+
+pushd rpcd
+  cp -a etc/openstack_deploy/* $config_dir
+
+  sed -i "s/\(maas_notification_plan\): .*/\1: npTechnicalContactsEmail/" ${config_dir}/user_extras_variables.yml
+  sed -i "s/\(lb_name\): .*/\1: %%CLUSTER_PREFIX%%-node3/" ${config_dir}/user_extras_variables.yml
+  sed -i "s@\(rackspace_cloud_auth_url\): .*@\1: %%RACKSPACE_CLOUD_AUTH_URL%%@" ${config_dir}/user_extras_variables.yml
+  sed -i "s/\(rackspace_cloud_tenant_id\): .*/\1: %%RACKSPACE_CLOUD_TENANT_ID%%/" ${config_dir}/user_extras_variables.yml
+  sed -i "s/\(rackspace_cloud_username\): .*/\1: %%RACKSPACE_CLOUD_USERNAME%%/" ${config_dir}/user_extras_variables.yml
+  sed -i "s/\(rackspace_cloud_password\): .*/\1: %%RACKSPACE_CLOUD_PASSWORD%%/" ${config_dir}/user_extras_variables.yml
+  sed -i "s/\(rackspace_cloud_api_key\): .*/\1: %%RACKSPACE_CLOUD_API_KEY%%/" ${config_dir}/user_extras_variables.yml
+
+  ${checkout_dir}/rpc-openstack/os-ansible-deployment/scripts/pw-token-gen.py --file ${config_dir}/user_extras_secrets.yml
+popd
 
 # here we run ansible using the run-playbooks script in the ansible repo
 if [ "%%RUN_ANSIBLE%%" = "True" ]; then
-  scripts/bootstrap-ansible.sh
+  cd ${checkout_dir}/rpc-openstack/os-ansible-deployment
   scripts/run-playbooks.sh
-fi
-if [ "%%RUN_TEMPEST%%" = "True" ]; then
-  export TEMPEST_SCRIPT_PARAMETERS="%%TEMPEST_SCRIPT_PARAMETERS%%"
-  scripts/run-tempest.sh
+  pushd ${checkout_dir}/rpc-openstack/rpcd/playbooks
+    openstack-ansible repo-build.yml
+    openstack-ansible repo-pip-setup.yml
+    if [ "$DEPLOY_MONITORING" = "yes" ]; then
+      openstack-ansible setup-maas.yml
+    fi
+  popd
+  if [ "%%RUN_TEMPEST%%" = "True" ]; then
+    export TEMPEST_SCRIPT_PARAMETERS="%%TEMPEST_SCRIPT_PARAMETERS%%"
+    scripts/run-tempest.sh
+  fi
 fi
 %%CURL_CLI%% --data-binary '{"status": "SUCCESS"}'

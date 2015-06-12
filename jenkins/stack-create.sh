@@ -19,7 +19,8 @@ DEPLOY_LOGGING=${DEPLOY_LOGGING:-"yes"}
 DEPLOY_OPENSTACK=${DEPLOY_OPENSTACK:-"yes"}
 DEPLOY_SWIFT=${DEPLOY_SWIFT:-"yes"}
 DEPLOY_TEMPEST=${DEPLOY_TEMPEST:-"yes"}
-DEPLOY_MONITORING=${DEPLOY_MONITORING:-"no"}
+DEPLOY_MONITORING=${DEPLOY_MONITORING:-"yes"}
+TEST_MONITORING=${TEST_MONITORING:-"yes"}
 RACKSPACE_CLOUD_USERNAME=${RACKSPACE_CLOUD_USERNAME:-"$OS_USERNAME"}
 RACKSPACE_CLOUD_API_KEY=${RACKSPACE_CLOUD_API_KEY:-"$OS_API_KEY"}
 RACKSPACE_CLOUD_AUTH_URL=${RACKSPACE_CLOUD_AUTH_URL:-"$OS_AUTH_URL"}
@@ -32,7 +33,7 @@ GERRIT_REFSPEC=${GERRIT_REFSPEC:-""}
 
 source $CLOUD_CREDS
 
-heat stack-create -t 120 -f openstack_multi_node.yml ${CLUSTER_PREFIX} -P "key_name=${KEY_NAME};os_ansible_git_version=${OS_ANSIBLE_GIT_VERSION};cluster_prefix=${CLUSTER_PREFIX};deploy_logging=${DEPLOY_LOGGING};deploy_tempest=${DEPLOY_TEMPEST};deploy_swift=${DEPLOY_SWIFT};deploy_monitoring=${DEPLOY_MONITORING};rackspace_cloud_username=${RACKSPACE_CLOUD_USERNAME};rackspace_cloud_api_key=${RACKSPACE_CLOUD_API_KEY};rackspace_cloud_auth_url=${RACKSPACE_CLOUD_AUTH_URL};rackspace_cloud_password=${RACKSPACE_CLOUD_PASSWORD};rackspace_cloud_tenant_id=${RACKSPACE_CLOUD_TENANT_ID};glance_default_store=${GLANCE_DEFAULT_STORE};glance_swift_store_region=${GLANCE_SWIFT_STORE_REGION};flavor=${FLAVOR};os_ansible_git_repo=${OS_ANSIBLE_GIT_REPO};heat_git_repo=${HEAT_GIT_REPO};heat_git_version=${HEAT_GIT_VERSION};run_ansible=${RUN_ANSIBLE};gerrit_refspec=${GERRIT_REFSPEC};rpc_openstack_git_repo=${RPC_OPENSTACK_GIT_REPO};rpc_openstack_git_version=${RPC_OPENSTACK_GIT_VERSION}"
+heat stack-create -t 120 -f openstack_multi_node.yml ${CLUSTER_PREFIX} -P "key_name=${KEY_NAME};os_ansible_git_version=${OS_ANSIBLE_GIT_VERSION};cluster_prefix=${CLUSTER_PREFIX};deploy_logging=${DEPLOY_LOGGING};deploy_tempest=${DEPLOY_TEMPEST};deploy_swift=${DEPLOY_SWIFT};deploy_monitoring=${DEPLOY_MONITORING};test_monitoring=${TEST_MONITORING};rackspace_cloud_username=${RACKSPACE_CLOUD_USERNAME};rackspace_cloud_api_key=${RACKSPACE_CLOUD_API_KEY};rackspace_cloud_auth_url=${RACKSPACE_CLOUD_AUTH_URL};rackspace_cloud_password=${RACKSPACE_CLOUD_PASSWORD};rackspace_cloud_tenant_id=${RACKSPACE_CLOUD_TENANT_ID};glance_default_store=${GLANCE_DEFAULT_STORE};glance_swift_store_region=${GLANCE_SWIFT_STORE_REGION};flavor=${FLAVOR};os_ansible_git_repo=${OS_ANSIBLE_GIT_REPO};heat_git_repo=${HEAT_GIT_REPO};heat_git_version=${HEAT_GIT_VERSION};run_ansible=${RUN_ANSIBLE};gerrit_refspec=${GERRIT_REFSPEC};rpc_openstack_git_repo=${RPC_OPENSTACK_GIT_REPO};rpc_openstack_git_version=${RPC_OPENSTACK_GIT_VERSION}"
 
 exit_status=-1
 

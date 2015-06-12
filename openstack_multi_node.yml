@@ -97,6 +97,12 @@ parameters:
     description: Deploy monitoring solution (this will only work on Rackspace Cloud Servers instances)
     default: 'yes'
 
+  test_monitoring:
+    type: string
+    label: Test monitoring solution
+    description: Test monitoring solution (this will only work on Rackspace Cloud Servers instances)
+    default: 'no'
+
   run_ansible:
     type: boolean
     label: Run ansible
@@ -278,6 +284,7 @@ resources:
             "%%TEMPEST_SCRIPT_PARAMETERS%%": { get_param: tempest_script_parameters }
             "%%DEPLOY_SWIFT%%": { get_param: deploy_swift }
             "%%DEPLOY_MONITORING%%": { get_param: deploy_monitoring }
+            "%%TEST_MONITORING%%": { get_param: test_monitoring }
             "%%OS_ANSIBLE_GIT_REPO%%": { get_param: os_ansible_git_repo }
             "%%OS_ANSIBLE_GIT_VERSION%%": { get_param: os_ansible_git_version }
             "%%HEAT_GIT_REPO%%": { get_param: heat_git_repo }

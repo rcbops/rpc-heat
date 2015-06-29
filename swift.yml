@@ -78,10 +78,16 @@ global_overrides:
 swift-proxy_hosts:
   __CLUSTER_PREFIX__-node1:
     ip: 172.29.236.1
+    container_vars:
+      swift_proxy_vars:
   __CLUSTER_PREFIX__-node2:
     ip: 172.29.236.2
+    container_vars:
+      swift_proxy_vars:
   __CLUSTER_PREFIX__-node3:
     ip: 172.29.236.3
+    container_vars:
+      swift_proxy_vars:
 
 ## Specify the swift_hosts which will be the swift storage nodes.
 ##

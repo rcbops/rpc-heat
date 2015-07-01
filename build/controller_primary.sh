@@ -82,6 +82,8 @@ pushd rpcd
   cp -a etc/openstack_deploy/* $config_dir
 
   sed -i "s/\(maas_notification_plan\): .*/\1: npTechnicalContactsEmail/" ${config_dir}/user_extras_variables.yml
+  # The primary IPv4 is more consistently available on access_ip1_v4 than public0_v4
+  sed -i "s/\(maas_target_alias\): .*/\1: access_ip1_v4/" ${config_dir}/user_extras_variables.yml
   sed -i "s/\(lb_name\): .*/\1: %%CLUSTER_PREFIX%%-node3/" ${config_dir}/user_extras_variables.yml
   sed -i "s@\(rackspace_cloud_auth_url\): .*@\1: %%RACKSPACE_CLOUD_AUTH_URL%%@" ${config_dir}/user_extras_variables.yml
   sed -i "s/\(rackspace_cloud_tenant_id\): .*/\1: %%RACKSPACE_CLOUD_TENANT_ID%%/" ${config_dir}/user_extras_variables.yml

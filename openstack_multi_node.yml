@@ -11,7 +11,7 @@ parameters:
     type: string
     label: Flavor
     description: Type of instance (flavor) to be used
-    default: performance1-8
+    default: general1-8
 
   key_name:
     type: string
@@ -260,6 +260,7 @@ resources:
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
+      diskConfig: MANUAL
       config_drive: True
       user_data_format: RAW
       user_data:
@@ -312,6 +313,7 @@ resources:
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
+      diskConfig: MANUAL
       config_drive: True
       user_data_format: RAW
       user_data:
@@ -341,6 +343,7 @@ resources:
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
+      diskConfig: MANUAL
       config_drive: True
       user_data_format: RAW
       user_data:
@@ -370,6 +373,7 @@ resources:
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
+      diskConfig: MANUAL
       config_drive: True
       user_data_format: RAW
       user_data:
@@ -398,6 +402,7 @@ resources:
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
+      diskConfig: MANUAL
       config_drive: True
       user_data_format: RAW
       user_data:

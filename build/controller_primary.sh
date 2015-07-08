@@ -79,7 +79,8 @@ pushd os-ansible-deployment
 popd
 
 pushd rpcd
-  cp -a etc/openstack_deploy/* $config_dir
+  cp -a etc/openstack_deploy/{env.d/,user_extras*.yml} $config_dir
+  scripts/update-yaml.py $user_variables etc/openstack_deploy/user_variables.yml
 
   sed -i "s/\(maas_notification_plan\): .*/\1: npTechnicalContactsEmail/" ${config_dir}/user_extras_variables.yml
   # The primary IPv4 is more consistently available on access_ip1_v4 than public0_v4

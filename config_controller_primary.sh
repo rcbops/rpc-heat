@@ -188,21 +188,28 @@ chmod 600 .ssh/*
 
 cd $checkout_dir
 
+# clone parent repo, but don't initialise submodule yet
 if [ ! -e ${checkout_dir}/rpc-openstack ]; then
   git clone -b %%RPC_OPENSTACK_GIT_VERSION%% %%RPC_OPENSTACK_GIT_REPO%%
 fi
 
 cd ${checkout_dir}/rpc-openstack
+
+# if we want to use a different submodule repo/sha
 if [ ! -z $OS_ANSIBLE_GIT_VERSION ]; then
   rm .gitmodules
   git rm os-ansible-deployment
   git submodule add %%OS_ANSIBLE_GIT_REPO%%
+  git submodule update --init
+  pushd os-ansible-deployment
+    git checkout $OS_ANSIBLE_GIT_VERSION
+  popd
+# otherwise just use the submodule sha specified by parent
+else
+  git submodule update --init
 fi
-git submodule init
-git submodule update
 
 pushd os-ansible-deployment
-  git checkout $OS_ANSIBLE_GIT_VERSION
 
   if [ ! -z $GERRIT_REFSPEC ]; then
     # Git creates a commit while merging so identity must be set.

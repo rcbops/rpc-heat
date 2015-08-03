@@ -63,6 +63,7 @@ global_overrides:
           - all_containers
           - hosts
         type: "raw"
+        container_mtu: 1450
         container_bridge: "br-mgmt"
         container_interface: "eth1"
         container_type: "veth"
@@ -76,6 +77,7 @@ global_overrides:
           - cinder_volume
           - nova_compute
         type: "raw"
+        container_mtu: 1450
         container_bridge: "br-storage"
         container_interface: "eth2"
         container_type: "veth"
@@ -86,6 +88,7 @@ global_overrides:
           - nova_compute
           - neutron_linuxbridge_agent
         type: "raw"
+        container_mtu: 1450
         container_bridge: "br-snet"
         container_interface: "eth3"
         container_type: "veth"

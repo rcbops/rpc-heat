@@ -3,6 +3,8 @@
 set -e
 
 export HOME=${HOME:-"/root"}
+export DEPLOY_CEPH=%%DEPLOY_CEPH%%
+export CEPH_NODE_COUNT=%%CEPH_NODE_COUNT%%
 
 INTERFACES="/etc/network/interfaces"
 INTERFACES_D="/etc/network/interfaces.d"
@@ -21,6 +23,12 @@ cat > /etc/hosts << "EOF"
 172.29.236.4 %%CLUSTER_PREFIX%%-node4
 172.29.236.5 %%CLUSTER_PREFIX%%-node5
 EOF
+if [ $DEPLOY_CEPH == "yes" ] && [ $CEPH_NODE_COUNT -gt 0 ]; then
+  last_ceph_node=$(($CEPH_NODE_COUNT-1))
+  for x in $(seq 0 $last_ceph_node); do
+    echo "172.29.236.2$x %%CLUSTER_PREFIX%%-node2$x" >> /etc/hosts
+  done
+fi
 
 cd /root
 echo -n "%%PUBLIC_KEY%%" > .ssh/id_rsa.pub

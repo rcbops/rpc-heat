@@ -1,0 +1,117 @@
+heat_template_version: 2013-05-23
+
+parameters:
+  image:
+    type: string
+    label: Image name or ID
+    description: Image to be used for compute instance
+    default: Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)
+
+  flavor:
+    type: string
+    label: Flavor
+    description: Type of instance (flavor) to be used
+    default: performance1-8
+
+  key_name:
+    type: string
+    label: Key name
+    description: Name of key-pair to be used for compute instance
+    default: default
+
+  volume_size:
+    type: number
+    description: Size of volume to attach to instance
+    default: 100
+
+  cluster_prefix:
+    type: string
+    label: Cluster prefix
+    description: Prefix to use when building cluster
+    default: heat
+    constraints:
+      # The recommended hostname length should be less than 20 chars, we tack
+      # on -nodeX which adds up to another 5 chars, hence max being 14.
+      - length: { min: 1, max: 14 }
+
+  deploy_ceph:
+    type: string
+    label: Deploy Ceph
+    description: Deploy Ceph
+    default: 'no'
+
+  ceph_node_count:
+    type: number
+    label: Number of Ceph nodes to create
+    description: Number of Ceph nodes to create
+    default: 0
+    constraints:
+      - range: { min: 0, max: 10 }
+
+  group_index:
+    type: string
+    default: "0"
+
+  public_key:
+    type: string
+
+  heat_mgmt_vxlan:
+    type: string
+
+  heat_tunnel:
+    type: string
+
+  heat_storage:
+    type: string
+
+resources:
+  ceph_node_wait:
+    type: "OS::Heat::SwiftSignal"
+    properties:
+      handle: { get_resource: ceph_node_wait_handle }
+      count: 1
+      timeout: 900
+
+  ceph_node_wait_handle:
+    type: "OS::Heat::SwiftSignalHandle"
+
+  ceph_node:
+    type: "OS::Nova::Server"
+    properties:
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      key_name: { get_param: key_name }
+      name:
+        str_replace:
+          template: "%%CLUSTER_PREFIX%%-node2%group_index%"
+          params:
+            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
+            "%group_index%": { get_param: group_index }
+      networks:
+        - uuid: 00000000-0000-0000-0000-000000000000
+        - uuid: 11111111-1111-1111-1111-111111111111
+        - uuid: { get_param: heat_mgmt_vxlan }
+        - uuid: { get_param: heat_tunnel }
+        - uuid: { get_param: heat_storage }
+      config_drive: True
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: { get_file: config_compute_all.sh }
+          params:
+            "%%ID%%": { list_join: ["", ["2", { get_param: group_index }]] }
+            "%%PUBLIC_KEY%%": { get_param: public_key }
+            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
+            "%%DEPLOY_CEPH%%": { get_param: deploy_ceph }
+            "%%CEPH_NODE_COUNT%%": { get_param: ceph_node_count }
+            "%%CURL_CLI%%": { get_attr: ['ceph_node_wait_handle', 'curl_cli'] }
+
+  ceph_node_volumes:
+    type: 'OS::Heat::ResourceGroup'
+    properties:
+      count: 6
+      resource_def:
+        type: 'RPC::Volume::WithAttachment'
+        properties:
+          instance_id: { get_resource: ceph_node }
+          volume_size: { get_param: volume_size }

@@ -1,0 +1,10 @@
+---
+mons_hosts:
+  __CLUSTER_PREFIX__-node1:
+    ip: 172.29.236.1
+  __CLUSTER_PREFIX__-node2:
+    ip: 172.29.236.2
+  __CLUSTER_PREFIX__-node3:
+    ip: 172.29.236.3
+osds_hosts:
+# config_controller_primary.sh will add the OSD hosts to this file

@@ -79,6 +79,20 @@ parameters:
     description: Deploy openstack playbooks
     default: 'yes'
 
+  deploy_ceph:
+    type: string
+    label: Deploy Ceph
+    description: Deploy Ceph
+    default: 'no'
+
+  ceph_node_count:
+    type: number
+    label: Number of Ceph nodes to create
+    description: Number of Ceph nodes to create
+    default: 0
+    constraints:
+      - range: { min: 0, max: 10 }
+
   deploy_swift:
     type: string
     label: Deploy swift
@@ -150,7 +164,7 @@ parameters:
     description: The storage backend to configure glance with
     default: swift
     constraints:
-      - allowed_values: [ swift, file ]
+      - allowed_values: [ swift, file, rbd ]
 
   glance_swift_store_region:
     type: string
@@ -283,6 +297,8 @@ resources:
             "%%RUN_TEMPEST%%": { get_param: run_tempest }
             "%%TEMPEST_SCRIPT_PARAMETERS%%": { get_param: tempest_script_parameters }
             "%%DEPLOY_SWIFT%%": { get_param: deploy_swift }
+            "%%DEPLOY_CEPH%%": { get_param: deploy_ceph }
+            "%%CEPH_NODE_COUNT%%": { get_param: ceph_node_count }
             "%%DEPLOY_MONITORING%%": { get_param: deploy_monitoring }
             "%%TEST_MONITORING%%": { get_param: test_monitoring }
             "%%OS_ANSIBLE_GIT_REPO%%": { get_param: os_ansible_git_repo }
@@ -329,6 +345,8 @@ resources:
             "%%PUBLIC_KEY%%": { get_attr: [ansible_keypair, public_key] }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
             "%%DEPLOY_SWIFT%%": { get_param: deploy_swift }
+            "%%DEPLOY_CEPH%%": { get_param: deploy_ceph }
+            "%%CEPH_NODE_COUNT%%": { get_param: ceph_node_count }
             "%%CURL_CLI%%": { get_attr: ['controller2_wait_handle', 'curl_cli'] }
 
   controller3:
@@ -358,6 +376,8 @@ resources:
             "%%PUBLIC_KEY%%": { get_attr: [ansible_keypair, public_key] }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
             "%%DEPLOY_SWIFT%%": { get_param: deploy_swift }
+            "%%DEPLOY_CEPH%%": { get_param: deploy_ceph }
+            "%%CEPH_NODE_COUNT%%": { get_param: ceph_node_count }
             "%%CURL_CLI%%": { get_attr: ['controller3_wait_handle', 'curl_cli'] }
 
   compute1:
@@ -386,6 +406,8 @@ resources:
             "%%ID%%": "4"
             "%%PUBLIC_KEY%%": { get_attr: [ansible_keypair, public_key] }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
+            "%%DEPLOY_CEPH%%": { get_param: deploy_ceph }
+            "%%CEPH_NODE_COUNT%%": { get_param: ceph_node_count }
             "%%CURL_CLI%%": { get_attr: ['compute1_wait_handle', 'curl_cli'] }
 
   compute2:
@@ -414,7 +436,29 @@ resources:
             "%%ID%%": "5"
             "%%PUBLIC_KEY%%": { get_attr: [ansible_keypair, public_key] }
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
+            "%%DEPLOY_CEPH%%": { get_param: deploy_ceph }
+            "%%CEPH_NODE_COUNT%%": { get_param: ceph_node_count }
             "%%CURL_CLI%%": { get_attr: ['compute2_wait_handle', 'curl_cli'] }
+
+  ceph_nodes:
+    type: 'OS::Heat::ResourceGroup'
+    properties:
+      count: { get_param: ceph_node_count }
+      resource_def:
+        type: 'RPC::Server::WithVolumes'
+        properties:
+          image: { get_param: image }
+          flavor: { get_param: flavor }
+          key_name: { get_param: key_name }
+          cluster_prefix: { get_param: cluster_prefix }
+          deploy_ceph: { get_param: deploy_ceph }
+          ceph_node_count: { get_param: ceph_node_count }
+          public_key: { get_attr: [ansible_keypair, public_key] }
+          group_index: '%index%'
+          heat_mgmt_vxlan: { get_resource: heat_mgmt_vxlan }
+          heat_tunnel: { get_resource: heat_tunnel }
+          heat_storage: { get_resource: heat_storage }
+          volume_size: 400
 
 outputs:
   controller1_ip:
@@ -432,3 +476,6 @@ outputs:
   compute2_ip:
     description: The IP address of compute2
     value: { get_attr: [compute2, accessIPv4] }
+  ceph_nodes_ip:
+    description: The IP address of ceph1
+    value: { get_attr: [ceph_nodes, accessIPv4] }

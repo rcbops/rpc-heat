@@ -1,0 +1,3 @@
+resource_registry:
+  RPC::Server::WithVolumes: server_with_volumes.yaml
+  RPC::Volume::WithAttachment: volume_with_attachment.yaml

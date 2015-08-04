@@ -180,6 +180,7 @@ DEPLOY_OPENSTACK=%%DEPLOY_OPENSTACK%%
 DEPLOY_SWIFT=%%DEPLOY_SWIFT%%
 DEPLOY_TEMPEST=%%DEPLOY_TEMPEST%%
 DEPLOY_MONITORING=%%DEPLOY_MONITORING%%
+TEST_MONITORING=%%TEST_MONITORING%%
 GERRIT_REFSPEC=%%GERRIT_REFSPEC%%
 OS_ANSIBLE_GIT_VERSION=%%OS_ANSIBLE_GIT_VERSION%%
 
@@ -262,6 +263,28 @@ pushd rpcd
   sed -i "s/\(rackspace_cloud_password\): .*/\1: %%RACKSPACE_CLOUD_PASSWORD%%/" ${config_dir}/user_extras_variables.yml
   sed -i "s/\(rackspace_cloud_api_key\): .*/\1: %%RACKSPACE_CLOUD_API_KEY%%/" ${config_dir}/user_extras_variables.yml
 
+  if [ "$DEPLOY_MONITORING" = "yes" ] && [ "$TEST_MONITORING" = "yes" ]; then
+    sed -i "s/\(ssl_check\): .*/\1: true/" ${config_dir}/user_extras_variables.yml
+    sed -i "s/\(hp_check\): .*/\1: true/" ${config_dir}/user_extras_variables.yml
+    echo "maas_horizon_scheme: https" >> ${config_dir}/user_extras_variables.yml
+    echo "\
+maas_testing_mappings:
+  - \"%%CLUSTER_PREFIX%%-node1:CONTROLLER,LOGGER,SWIFT\"
+  - \"%%CLUSTER_PREFIX%%-node2:CONTROLLER,SWIFT\"
+  - \"%%CLUSTER_PREFIX%%-node3:CONTROLLER,LOADBALANCER,SWIFT\"
+  - \"%%CLUSTER_PREFIX%%-node4:COMPUTE,BLOCK_STORAGE\"
+  - \"%%CLUSTER_PREFIX%%-node5:COMPUTE\"" >> ${config_dir}/user_extras_variables.yml
+    echo "\
+maas_testing_task_files:
+  - swift_maas
+  - maas_cdm
+  - maas_hp_hardware
+  - maas_local
+  - maas_remote
+  - maas_ssl_check
+  - network" >> ${config_dir}/user_extras_variables.yml
+  fi
+
   ${checkout_dir}/rpc-openstack/os-ansible-deployment/scripts/pw-token-gen.py --file ${config_dir}/user_extras_secrets.yml
 popd
 
@@ -272,6 +295,9 @@ if [ "%%RUN_ANSIBLE%%" = "True" ]; then
   pushd ${checkout_dir}/rpc-openstack/rpcd/playbooks
     openstack-ansible repo-build.yml
     openstack-ansible repo-pip-setup.yml
+    if [ "$DEPLOY_MONITORING" = "yes" ] && [ "$TEST_MONITORING" = "yes" ]; then
+      openstack-ansible "test-maas.yml" --tags "setup,setup-fake-hp"
+    fi
     if [ "$DEPLOY_MONITORING" = "yes" ]; then
       openstack-ansible setup-maas.yml
     fi
@@ -280,5 +306,10 @@ if [ "%%RUN_ANSIBLE%%" = "True" ]; then
     export TEMPEST_SCRIPT_PARAMETERS="%%TEMPEST_SCRIPT_PARAMETERS%%"
     scripts/run-tempest.sh
   fi
+  pushd ${checkout_dir}/rpc-openstack/rpcd/playbooks
+    if [ "$DEPLOY_MONITORING" = "yes" ] && [ "$TEST_MONITORING" = "yes" ]; then
+      openstack-ansible "test-maas.yml" --tags "test"
+    fi
+  popd
 fi
 %%CURL_CLI%% --data-binary '{"status": "SUCCESS"}'

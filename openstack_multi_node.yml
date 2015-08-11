@@ -262,7 +262,7 @@ resources:
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
       networks:
         - uuid: 00000000-0000-0000-0000-000000000000
-        - uuid: 11111111-1111-1111-1111-111111111111
+        - network: ServiceNet
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
@@ -315,7 +315,7 @@ resources:
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
       networks:
         - uuid: 00000000-0000-0000-0000-000000000000
-        - uuid: 11111111-1111-1111-1111-111111111111
+        - network: ServiceNet
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
@@ -344,7 +344,7 @@ resources:
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
       networks:
         - uuid: 00000000-0000-0000-0000-000000000000
-        - uuid: 11111111-1111-1111-1111-111111111111
+        - network: ServiceNet
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
@@ -373,7 +373,7 @@ resources:
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
       networks:
         - uuid: 00000000-0000-0000-0000-000000000000
-        - uuid: 11111111-1111-1111-1111-111111111111
+        - network: ServiceNet
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }
@@ -401,7 +401,7 @@ resources:
             "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
       networks:
         - uuid: 00000000-0000-0000-0000-000000000000
-        - uuid: 11111111-1111-1111-1111-111111111111
+        - network: ServiceNet
         - uuid: { get_resource: heat_mgmt_vxlan }
         - uuid: { get_resource: heat_tunnel }
         - uuid: { get_resource: heat_storage }

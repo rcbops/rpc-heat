@@ -5,35 +5,42 @@ swift_config="${config_dir}/conf.d/swift.yml"
 user_variables="${config_dir}/user_variables.yml"
 user_secrets="${config_dir}/user_secrets.yml"
 
-DEPLOY_LOGGING=%%DEPLOY_LOGGING%%
-DEPLOY_OPENSTACK=%%DEPLOY_OPENSTACK%%
-DEPLOY_SWIFT=%%DEPLOY_SWIFT%%
-DEPLOY_TEMPEST=%%DEPLOY_TEMPEST%%
-DEPLOY_MONITORING=%%DEPLOY_MONITORING%%
-TEST_MONITORING=%%TEST_MONITORING%%
-GERRIT_REFSPEC=%%GERRIT_REFSPEC%%
-OS_ANSIBLE_GIT_VERSION=%%OS_ANSIBLE_GIT_VERSION%%
+export DEPLOY_LOGGING=%%DEPLOY_LOGGING%%
+export DEPLOY_OPENSTACK=%%DEPLOY_OPENSTACK%%
+export DEPLOY_SWIFT=%%DEPLOY_SWIFT%%
+export DEPLOY_TEMPEST=%%DEPLOY_TEMPEST%%
+export DEPLOY_MONITORING=%%DEPLOY_MONITORING%%
+export TEST_MONITORING=%%TEST_MONITORING%%
+export GERRIT_REFSPEC=%%GERRIT_REFSPEC%%
+export OS_ANSIBLE_GIT_VERSION=%%OS_ANSIBLE_GIT_VERSION%%
 
 echo -n "%%PRIVATE_KEY%%" > .ssh/id_rsa
 chmod 600 .ssh/*
 
 cd $checkout_dir
 
+# clone parent repo, but don't initialise submodule yet
 if [ ! -e ${checkout_dir}/rpc-openstack ]; then
   git clone -b %%RPC_OPENSTACK_GIT_VERSION%% %%RPC_OPENSTACK_GIT_REPO%%
 fi
 
 cd ${checkout_dir}/rpc-openstack
+
+# if we want to use a different submodule repo/sha
 if [ ! -z $OS_ANSIBLE_GIT_VERSION ]; then
   rm .gitmodules
   git rm os-ansible-deployment
   git submodule add %%OS_ANSIBLE_GIT_REPO%%
+  git submodule update --init
+  pushd os-ansible-deployment
+    git checkout $OS_ANSIBLE_GIT_VERSION
+  popd
+# otherwise just use the submodule sha specified by parent
+else
+  git submodule update --init
 fi
-git submodule init
-git submodule update
 
 pushd os-ansible-deployment
-  git checkout $OS_ANSIBLE_GIT_VERSION
 
   if [ ! -z $GERRIT_REFSPEC ]; then
     # Git creates a commit while merging so identity must be set.

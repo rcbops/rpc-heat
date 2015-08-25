@@ -76,15 +76,17 @@ global_overrides:
         container_bridge: "br-storage"
         container_interface: "eth2"
         ip_from_q: "storage"
-    - network:
-        group_binds:
-          - glance_api
-          - nova_compute
-          - neutron_linuxbridge_agent
-        type: "raw"
-        container_bridge: "br-snet"
-        container_interface: "eth3"
-        ip_from_q: "snet"
+    # br-snet temporarily disabled due to bug in public cloud heat/neutron
+    # services that causes service net to not get assigned an interface
+    #- network:
+    #    group_binds:
+    #      - glance_api
+    #      - nova_compute
+    #      - neutron_linuxbridge_agent
+    #    type: "raw"
+    #    container_bridge: "br-snet"
+    #    container_interface: "eth3"
+    #    ip_from_q: "snet"
     - network:
         group_binds:
           - neutron_linuxbridge_agent

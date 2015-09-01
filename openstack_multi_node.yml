@@ -11,7 +11,7 @@ parameters:
     type: string
     label: Flavor
     description: Type of instance (flavor) to be used
-    default: performance1-8
+    default: general1-8
 
   key_name:
     type: string
@@ -189,6 +189,11 @@ parameters:
     label: parameters to pass to pass to run-tempest which calls openstack_tempest_gate
     default: smoke
 
+  volume_size:
+    type: number
+    description: Size of volume to create
+    default: 100
+
 resources:
   controller1_wait:
     type: "OS::Heat::SwiftSignal"
@@ -318,6 +323,19 @@ resources:
             "%%CURL_CLI%%": { get_attr: ['controller1_wait_handle', 'curl_cli'] }
             "%%GERRIT_REFSPEC%%": { get_param: gerrit_refspec }
 
+  controller1_volume:
+    type: OS::Cinder::Volume
+    properties:
+      size: { get_param: volume_size }
+      description: Volume for stack
+
+  controller1_volume_attachment:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      volume_id: { get_resource: controller1_volume }
+      instance_uuid: { get_resource: controller1 }
+      mountpoint: "/dev/xvde"
+
   controller2:
     type: "OS::Nova::Server"
     properties:
@@ -348,6 +366,19 @@ resources:
             "%%DEPLOY_CEPH%%": { get_param: deploy_ceph }
             "%%CEPH_NODE_COUNT%%": { get_param: ceph_node_count }
             "%%CURL_CLI%%": { get_attr: ['controller2_wait_handle', 'curl_cli'] }
+
+  controller2_volume:
+    type: OS::Cinder::Volume
+    properties:
+      size: { get_param: volume_size }
+      description: Volume for stack
+
+  controller2_volume_attachment:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      volume_id: { get_resource: controller2_volume }
+      instance_uuid: { get_resource: controller2 }
+      mountpoint: "/dev/xvde"
 
   controller3:
     type: "OS::Nova::Server"
@@ -380,6 +411,19 @@ resources:
             "%%CEPH_NODE_COUNT%%": { get_param: ceph_node_count }
             "%%CURL_CLI%%": { get_attr: ['controller3_wait_handle', 'curl_cli'] }
 
+  controller3_volume:
+    type: OS::Cinder::Volume
+    properties:
+      size: { get_param: volume_size }
+      description: Volume for stack
+
+  controller3_volume_attachment:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      volume_id: { get_resource: controller3_volume }
+      instance_uuid: { get_resource: controller3 }
+      mountpoint: "/dev/xvde"
+
   compute1:
     type: "OS::Nova::Server"
     properties:
@@ -410,6 +454,19 @@ resources:
             "%%CEPH_NODE_COUNT%%": { get_param: ceph_node_count }
             "%%CURL_CLI%%": { get_attr: ['compute1_wait_handle', 'curl_cli'] }
 
+  compute1_volume:
+    type: OS::Cinder::Volume
+    properties:
+      size: { get_param: volume_size }
+      description: Volume for stack
+
+  compute1_volume_attachment:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      volume_id: { get_resource: compute1_volume }
+      instance_uuid: { get_resource: compute1 }
+      mountpoint: "/dev/xvde"
+
   compute2:
     type: "OS::Nova::Server"
     properties:
@@ -439,6 +496,19 @@ resources:
             "%%DEPLOY_CEPH%%": { get_param: deploy_ceph }
             "%%CEPH_NODE_COUNT%%": { get_param: ceph_node_count }
             "%%CURL_CLI%%": { get_attr: ['compute2_wait_handle', 'curl_cli'] }
+
+  compute2_volume:
+    type: OS::Cinder::Volume
+    properties:
+      size: { get_param: volume_size }
+      description: Volume for stack
+
+  compute2_volume_attachment:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      volume_id: { get_resource: compute2_volume }
+      instance_uuid: { get_resource: compute2 }
+      mountpoint: "/dev/xvde"
 
   ceph_nodes:
     type: 'OS::Heat::ResourceGroup'

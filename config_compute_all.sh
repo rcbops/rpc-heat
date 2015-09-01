@@ -142,6 +142,15 @@ EOF
 
 ifup -a
 
+# Partition Cloud Block Storage disk used by cinder and swift
+fdisk /dev/xvde << EOF
+n
+p
+1
+
+
+w
+EOF
 cat > ${INTERFACES_D}/eth3.cfg << "EOF"
 auto eth3
 iface eth3 inet manual

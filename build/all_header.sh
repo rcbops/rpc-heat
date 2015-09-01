@@ -142,3 +142,12 @@ EOF
 
 ifup -a
 
+# Partition Cloud Block Storage disk used by cinder and swift
+fdisk /dev/xvde << EOF
+n
+p
+1
+
+
+w
+EOF

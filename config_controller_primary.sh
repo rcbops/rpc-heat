@@ -199,10 +199,10 @@ cd ${checkout_dir}/rpc-openstack
 # if we want to use a different submodule repo/sha
 if [ ! -z $OS_ANSIBLE_GIT_VERSION ]; then
   rm .gitmodules
-  git rm os-ansible-deployment
+  git rm openstack-ansible
   git submodule add %%OS_ANSIBLE_GIT_REPO%%
   git submodule update --init
-  pushd os-ansible-deployment
+  pushd openstack-ansible
     git checkout $OS_ANSIBLE_GIT_VERSION
   popd
 # otherwise just use the submodule sha specified by parent
@@ -210,13 +210,13 @@ else
   git submodule update --init
 fi
 
-pushd os-ansible-deployment
+pushd openstack-ansible
 
   if [ ! -z $GERRIT_REFSPEC ]; then
     # Git creates a commit while merging so identity must be set.
     git config --global user.name "Hot Hot Heat"
     git config --global user.email "flaming@li.ps"
-    git fetch https://review.openstack.org/stackforge/os-ansible-deployment $GERRIT_REFSPEC
+    git fetch https://review.openstack.org/openstack/openstack-ansible $GERRIT_REFSPEC
     git merge FETCH_HEAD
   fi
 
@@ -292,12 +292,12 @@ maas_testing_task_files:
   - network" >> ${config_dir}/user_extras_variables.yml
   fi
 
-  ${checkout_dir}/rpc-openstack/os-ansible-deployment/scripts/pw-token-gen.py --file ${config_dir}/user_extras_secrets.yml
+  ${checkout_dir}/rpc-openstack/openstack-ansible/scripts/pw-token-gen.py --file ${config_dir}/user_extras_secrets.yml
 popd
 
 # here we run ansible using the run-playbooks script in the ansible repo
 if [ "%%RUN_ANSIBLE%%" = "True" ]; then
-  cd ${checkout_dir}/rpc-openstack/os-ansible-deployment
+  cd ${checkout_dir}/rpc-openstack/openstack-ansible
   scripts/run-playbooks.sh
   pushd ${checkout_dir}/rpc-openstack/rpcd/playbooks
     openstack-ansible repo-build.yml

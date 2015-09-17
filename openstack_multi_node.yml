@@ -23,13 +23,13 @@ parameters:
     type: string
     label: os-ansible git repo
     description: URL of os-ansible git repo to clone
-    default: https://github.com/stackforge/os-ansible-deployment
+    default: https://github.com/openstack/openstack-ansible
 
   os_ansible_git_version:
     type: string
     label: os-ansible version
     description: os-ansible version to install (master, juno, stable, 9.0.5, 10.1.1, etc.)
-    # By default we will deploy the version of os-ansible-deployment defined as a submodule
+    # By default we will deploy the version of openstack-ansible defined as a submodule
     # in rpc-openstack
     default: ''
 

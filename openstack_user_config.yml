@@ -164,28 +164,6 @@ compute_hosts:
   __CLUSTER_PREFIX__-node5:
     ip: 172.29.236.5
 
-# User defined Storage Hosts, this should be a required group
-storage_hosts:
-  __CLUSTER_PREFIX__-node4:
-    ip: 172.29.236.4
-    # "container_vars" can be set outside of all other options as
-    # host specific optional variables.
-    container_vars:
-      # In this example we are defining what cinder volumes are
-      # on a given host.
-      cinder_backends:
-        # if the "limit_container_types" argument is set, within
-        # the top level key of the provided option the inventory
-        # process will perform a string match on the container name with
-        # the value found within the "limit_container_types" argument.
-        # If any part of the string found within the container
-        # name the options are appended as host_vars inside of inventory.
-        limit_container_types: cinder_volume
-        lvm:
-          volume_group: cinder-volumes
-          volume_driver: cinder.volume.drivers.lvm.LVMISCSIDriver
-          volume_backend_name: LVM_iSCSI
-
 # User defined Logging Hosts, this should be a required group
 log_hosts:
   __CLUSTER_PREFIX__-node1:

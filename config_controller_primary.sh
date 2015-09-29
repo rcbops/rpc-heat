@@ -3,6 +3,8 @@
 set -e
 
 export HOME=${HOME:-"/root"}
+export DEPLOY_CEPH=%%DEPLOY_CEPH%%
+export CEPH_NODE_COUNT=%%CEPH_NODE_COUNT%%
 
 INTERFACES="/etc/network/interfaces"
 INTERFACES_D="/etc/network/interfaces.d"
@@ -21,6 +23,12 @@ cat > /etc/hosts << "EOF"
 172.29.236.4 %%CLUSTER_PREFIX%%-node4
 172.29.236.5 %%CLUSTER_PREFIX%%-node5
 EOF
+if [ $DEPLOY_CEPH == "yes" ] && [ $CEPH_NODE_COUNT -gt 0 ]; then
+  last_ceph_node=$(($CEPH_NODE_COUNT-1))
+  for x in $(seq 0 $last_ceph_node); do
+    echo "172.29.236.2$x %%CLUSTER_PREFIX%%-node2$x" >> /etc/hosts
+  done
+fi
 
 cd /root
 echo -n "%%PUBLIC_KEY%%" > .ssh/id_rsa.pub
@@ -174,6 +182,9 @@ openstack_user_config="${config_dir}/openstack_user_config.yml"
 swift_config="${config_dir}/conf.d/swift.yml"
 user_variables="${config_dir}/user_variables.yml"
 user_secrets="${config_dir}/user_secrets.yml"
+ceph_config="${config_dir}/conf.d/ceph.yml"
+cinder_ceph_config="${config_dir}/conf.d/cinder_ceph.yml"
+cinder_lvm_config="${config_dir}/conf.d/cinder_lvm.yml"
 
 export DEPLOY_LOGGING=%%DEPLOY_LOGGING%%
 export DEPLOY_OPENSTACK=%%DEPLOY_OPENSTACK%%
@@ -220,6 +231,7 @@ pushd openstack-ansible
     git merge FETCH_HEAD
   fi
 
+  export ANSIBLE_ROLE_FILE="/opt/rpc-openstack/ansible-role-requirements.yml"
   scripts/bootstrap-ansible.sh
   cp -a etc/openstack_deploy /etc/
 
@@ -252,6 +264,15 @@ pushd openstack-ansible
 
     test -f $swift_config && rm $swift_config
   fi
+  if [ "$DEPLOY_CEPH" = "yes" ]; then
+    curl -o $cinder_ceph_config "${raw_url}/%%HEAT_GIT_VERSION%%/cinder_ceph.yml"
+    sed -i "s/__CLUSTER_PREFIX__/%%CLUSTER_PREFIX%%/g" $cinder_ceph_config
+    echo "cinder_ceph_client_uuid:" >> $user_secrets
+    sed -i "s/#\(nova_libvirt_images_rbd_pool\): .*/\1: vms/" $user_variables
+  else
+    curl -o $cinder_lvm_config "${raw_url}/%%HEAT_GIT_VERSION%%/cinder_lvm.yml"
+    sed -i "s/__CLUSTER_PREFIX__/%%CLUSTER_PREFIX%%/g" $cinder_lvm_config
+  fi
 
   scripts/pw-token-gen.py --file $user_secrets
 popd
@@ -269,6 +290,34 @@ pushd rpcd
   sed -i "s/\(rackspace_cloud_username\): .*/\1: %%RACKSPACE_CLOUD_USERNAME%%/" ${config_dir}/user_extras_variables.yml
   sed -i "s/\(rackspace_cloud_password\): .*/\1: %%RACKSPACE_CLOUD_PASSWORD%%/" ${config_dir}/user_extras_variables.yml
   sed -i "s/\(rackspace_cloud_api_key\): .*/\1: %%RACKSPACE_CLOUD_API_KEY%%/" ${config_dir}/user_extras_variables.yml
+  if [ "$DEPLOY_CEPH" = "yes" ]; then
+    curl -o $ceph_config "${raw_url}/%%HEAT_GIT_VERSION%%/ceph.yml"
+    last_ceph_node=$(($CEPH_NODE_COUNT-1))
+    for x in $(seq 0 $last_ceph_node); do
+      echo -e "  __CLUSTER_PREFIX__-node2$x:\n    ip: 172.29.236.2$x" >> $ceph_config
+    done
+    sed -i "s/__CLUSTER_PREFIX__/%%CLUSTER_PREFIX%%/g" $ceph_config
+    # NOTE: these are non-sensical values; we need to revisit!
+    echo "raw_multi_journal: true" | tee -a ${config_dir}/user_extras_variables.yml
+    echo "journal_size: 80000" | tee -a ${config_dir}/user_extras_variables.yml
+    echo "monitor_interface: eth1" | tee -a ${config_dir}/user_extras_variables.yml
+    echo "public_network: 172.29.236.0/22" | tee -a ${config_dir}/user_extras_variables.yml
+    echo "\
+devices:
+  - /dev/xvdc
+  - /dev/xvdf
+  - /dev/xvdg
+  - /dev/xvdh
+  - /dev/xvdi" | tee -a ${config_dir}/user_extras_variables.yml
+    echo "\
+raw_journal_devices:
+  - /dev/xvdb
+  - /dev/xvdb
+  - /dev/xvdb
+  - /dev/xvdb
+  - /dev/xvdb" | tee -a ${config_dir}/user_extras_variables.yml
+    echo "pool_default_size: 3" | tee -a ${config_dir}/user_extras_variables.yml
+  fi
 
   if [ "$DEPLOY_MONITORING" = "yes" ] && [ "$TEST_MONITORING" = "yes" ]; then
     sed -i "s/\(ssl_check\): .*/\1: true/" ${config_dir}/user_extras_variables.yml
@@ -297,26 +346,29 @@ popd
 
 # here we run ansible using the run-playbooks script in the ansible repo
 if [ "%%RUN_ANSIBLE%%" = "True" ]; then
-  cd ${checkout_dir}/rpc-openstack/openstack-ansible
-  scripts/run-playbooks.sh
-  pushd ${checkout_dir}/rpc-openstack/rpcd/playbooks
-    openstack-ansible repo-build.yml
-    openstack-ansible repo-pip-setup.yml
-    if [ "$DEPLOY_MONITORING" = "yes" ] && [ "$TEST_MONITORING" = "yes" ]; then
-      openstack-ansible "test-maas.yml" --tags "setup,setup-fake-hp"
-    fi
-    if [ "$DEPLOY_MONITORING" = "yes" ]; then
-      openstack-ansible setup-maas.yml
-    fi
+  if [ "$DEPLOY_MONITORING" = "yes" ] && [ "$TEST_MONITORING" = "yes" ]; then
+    pushd ${checkout_dir}/rpc-openstack/rpcd/playbooks
+      openstack-ansible "test-maas.yml" --tags "setup"
+    popd
+  fi
+  pushd ${checkout_dir}/rpc-openstack
+    export DEPLOY_HAPROXY="yes"
+    export DEPLOY_OSAD=$DELOY_OPENSTACK
+    export DEPLOY_ELK=$DEPLOY_LOGGING
+    export DEPLOY_MAAS=$DEPLOY_MONITORING
+    export DEPLOY_CEILOMETER="no"
+    ./scripts/deploy.sh
   popd
   if [ "%%RUN_TEMPEST%%" = "True" ]; then
-    export TEMPEST_SCRIPT_PARAMETERS="%%TEMPEST_SCRIPT_PARAMETERS%%"
-    scripts/run-tempest.sh
+    pushd ${checkout_dir}/rpc-openstack/openstack-ansible
+      export TEMPEST_SCRIPT_PARAMETERS="%%TEMPEST_SCRIPT_PARAMETERS%%"
+      scripts/run-tempest.sh
+    popd
   fi
-  pushd ${checkout_dir}/rpc-openstack/rpcd/playbooks
-    if [ "$DEPLOY_MONITORING" = "yes" ] && [ "$TEST_MONITORING" = "yes" ]; then
+  if [ "$DEPLOY_MONITORING" = "yes" ] && [ "$TEST_MONITORING" = "yes" ]; then
+    pushd ${checkout_dir}/rpc-openstack/rpcd/playbooks
       openstack-ansible "test-maas.yml" --tags "test"
-    fi
-  popd
+    popd
+  fi
 fi
 %%CURL_CLI%% --data-binary '{"status": "SUCCESS"}'

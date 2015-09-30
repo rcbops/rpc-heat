@@ -5,7 +5,7 @@
 SSH_OPTS="-o StrictHostKeyChecking=no -o GSSAPIAuthentication=no -o HashKnownHosts=no"
 CLOUD_CREDS=${CLOUD_CREDS:-"~/.openrc"}
 KEY_NAME=${KEY_NAME:-"jenkins"}
-FLAVOR=${FLAVOR:-"performance1-8"}
+FLAVOR=${FLAVOR:-"general1-8"}
 OS_ANSIBLE_GIT_REPO=${OS_ANSIBLE_GIT_REPO:-"https://github.com/openstack/openstack-ansible"}
 OS_ANSIBLE_GIT_VERSION=${OS_ANSIBLE_GIT_VERSION:-""}
 HEAT_GIT_REPO=${HEAT_GIT_REPO:-"https://github.com/rcbops/rpc-heat"}

@@ -1,4 +1,4 @@
-heat_template_version: 2013-05-23
+heat_template_version: 2014-10-16
 
 parameters:
   image:
@@ -194,6 +194,12 @@ parameters:
     description: Size of volume to create
     default: 100
 
+  ceph_mountpoints:
+    type: comma_delimited_list
+    label: List of device mount points for our ceph nodes
+    description: This parameter is used interally, do not override
+    default: "/dev/xvdf,/dev/xvdg,/dev/xvdh,/dev/xvdi,/dev/xvdj,/dev/xvdk"
+
 resources:
   controller1_wait:
     type: "OS::Heat::SwiftSignal"
@@ -334,7 +340,7 @@ resources:
     properties:
       volume_id: { get_resource: controller1_volume }
       instance_uuid: { get_resource: controller1 }
-      mountpoint: "/dev/xvde"
+      mountpoint: "/dev/xvdf"
 
   controller2:
     type: "OS::Nova::Server"
@@ -378,7 +384,7 @@ resources:
     properties:
       volume_id: { get_resource: controller2_volume }
       instance_uuid: { get_resource: controller2 }
-      mountpoint: "/dev/xvde"
+      mountpoint: "/dev/xvdf"
 
   controller3:
     type: "OS::Nova::Server"
@@ -422,7 +428,7 @@ resources:
     properties:
       volume_id: { get_resource: controller3_volume }
       instance_uuid: { get_resource: controller3 }
-      mountpoint: "/dev/xvde"
+      mountpoint: "/dev/xvdf"
 
   compute1:
     type: "OS::Nova::Server"
@@ -465,7 +471,7 @@ resources:
     properties:
       volume_id: { get_resource: compute1_volume }
       instance_uuid: { get_resource: compute1 }
-      mountpoint: "/dev/xvde"
+      mountpoint: "/dev/xvdf"
 
   compute2:
     type: "OS::Nova::Server"
@@ -508,7 +514,7 @@ resources:
     properties:
       volume_id: { get_resource: compute2_volume }
       instance_uuid: { get_resource: compute2 }
-      mountpoint: "/dev/xvde"
+      mountpoint: "/dev/xvdf"
 
   ceph_nodes:
     type: 'OS::Heat::ResourceGroup'
@@ -529,6 +535,7 @@ resources:
           heat_tunnel: { get_resource: heat_tunnel }
           heat_storage: { get_resource: heat_storage }
           volume_size: 400
+          ceph_mountpoints: { get_param: ceph_mountpoints }
 
 outputs:
   controller1_ip:

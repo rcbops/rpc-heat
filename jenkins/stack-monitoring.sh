@@ -14,8 +14,6 @@ TEST_MONITORING=${TEST_MONITORING:-"no"}
 
 
 if [ $DEPLOY_MONITORING = "yes" ]; then
-  ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "cd ${CHECKOUT}/rpcd/playbooks && openstack-ansible repo-build.yml"
-  ssh -l root -i $SSH_KEY $SSH_OPTS $CONTROLLER1_IP "cd ${CHECKOUT}/rpcd/playbooks && openstack-ansible repo-pip-setup.yml"
   # We setup test-maas.yml first so we get the mocked hp tools dropped on the
   # hosts; this prevents us from getting hp-related failures until the tools
   # are dropped.

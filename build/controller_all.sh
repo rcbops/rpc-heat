@@ -19,9 +19,19 @@ EOF
 
 ifup -a
 
+# Partition Cloud Block Storage disk used by cinder and swift
+fdisk /dev/xvdf << EOF
+n
+p
+1
+
+
+w
+EOF
+
 if [ "%%DEPLOY_SWIFT%%" = "yes" ]; then
-  pvcreate /dev/xvde1
-  vgcreate swift /dev/xvde1
+  pvcreate /dev/xvdf1
+  vgcreate swift /dev/xvdf1
 
   for DISK in disk1 disk2 disk3; do
     lvcreate -L 10G -n ${DISK} swift

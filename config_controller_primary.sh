@@ -171,6 +171,7 @@ fi
 rpc_user_config="/etc/rpc_deploy/rpc_user_config.yml"
 swift_config="/etc/rpc_deploy/conf.d/swift.yml"
 user_variables="/etc/rpc_deploy/user_variables.yml"
+clone_dir="/opt/openstack-ansible"
 
 export DEPLOY_INFRASTRUCTURE=%%DEPLOY_INFRASTRUCTURE%%
 export DEPLOY_LOGGING=%%DEPLOY_LOGGING%%
@@ -183,16 +184,16 @@ export GERRIT_REFSPEC=%%GERRIT_REFSPEC%%
 echo -n "%%PRIVATE_KEY%%" > .ssh/id_rsa
 chmod 600 .ssh/*
 
-if [ ! -e /root/os-ansible-deployment ]; then
-  git clone -b %%OS_ANSIBLE_GIT_VERSION%% %%OS_ANSIBLE_GIT_REPO%% os-ansible-deployment
+if [ ! -e $clone_dir ]; then
+  git clone -b %%OS_ANSIBLE_GIT_VERSION%% %%OS_ANSIBLE_GIT_REPO%% $clone_dir
 fi
 
-cd os-ansible-deployment
+cd $clone_dir
 if [ ! -z $GERRIT_REFSPEC ]; then
   # Git creates a commit while merging so identity must be set.
   git config --global user.name "Hot Hot Heat"
   git config --global user.email "flaming@li.ps"
-  git fetch https://review.openstack.org/stackforge/os-ansible-deployment $GERRIT_REFSPEC
+  git fetch https://review.openstack.org/openstack/openstack-ansible $GERRIT_REFSPEC
   git merge FETCH_HEAD
 fi
 pip install -r requirements.txt
@@ -237,7 +238,7 @@ else
   test -f $swift_config && rm $swift_config
 fi
 
-cd /root/os-ansible-deployment
+cd $clone_dir
 
 # here we run ansible using the run-playbooks script in the ansible repo
 if [ "%%RUN_ANSIBLE%%" = "True" ]; then

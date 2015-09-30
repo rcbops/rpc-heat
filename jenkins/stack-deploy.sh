@@ -6,7 +6,7 @@ CLOUD_CREDS=${CLOUD_CREDS:-"~/.openrc"}
 source $CLOUD_CREDS
 
 CONTROLLER1_IP=$(heat output-show ${CLUSTER_PREFIX} controller1_ip | sed -e 's/"//g')
-CHECKOUT="/root/os-ansible-deployment/"
+CHECKOUT="/opt/openstack-ansible/"
 SSH_KEY=${SSH_KEY:-"~/.ssh/jenkins"}
 SSH_OPTS="-o StrictHostKeyChecking=no -o GSSAPIAuthentication=no -o HashKnownHosts=no -o UserKnownHostsFile=/dev/null"
 DEPLOY_LOGGING=${DEPLOY_LOGGING:-"yes"}

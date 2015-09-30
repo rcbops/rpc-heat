@@ -23,7 +23,7 @@ parameters:
     type: string
     label: RPC git repo
     description: URL of RPC git repo to clone
-    default: https://github.com/stackforge/os-ansible-deployment
+    default: https://github.com/openstack/openstack-ansible
 
   os_ansible_git_version:
     type: string

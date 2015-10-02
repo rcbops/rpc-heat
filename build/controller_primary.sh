@@ -58,6 +58,7 @@ pushd openstack-ansible
   cp -a etc/openstack_deploy /etc/
 
   echo "nova_virt_type: qemu" >> $user_variables
+  echo "keystone_wsgi_processes: 4" >> $user_variables
   sed -i "s/\(glance_default_store\): .*/\1: %%GLANCE_DEFAULT_STORE%%/g" $user_variables
 
   environment_version=$(md5sum ${config_dir}/openstack_environment.yml | awk '{print $1}')

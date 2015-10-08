@@ -218,9 +218,7 @@ cd ${checkout_dir}/rpc-openstack
 
 # if we want to use a different submodule repo/sha
 if [ ! -z $OS_ANSIBLE_GIT_VERSION ]; then
-  rm .gitmodules
-  git rm openstack-ansible
-  git submodule add %%OS_ANSIBLE_GIT_REPO%%
+  sed -i 's@url = https://git.openstack.org/openstack/openstack-ansible@url = %%OS_ANSIBLE_GIT_REPO%%@' .gitmodules
   git submodule update --init
   pushd openstack-ansible
     git checkout $OS_ANSIBLE_GIT_VERSION

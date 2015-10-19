@@ -1,5 +1,5 @@
 # Adapted from https://raw.githubusercontent.com/openstack/heat-templates/master/hot/resource_group/volume_with_attachment.yaml
-heat_template_version: 2013-05-23
+heat_template_version: 2014-10-16
 
 parameters:
   volume_size:
@@ -10,6 +10,15 @@ parameters:
   instance_id:
     type: string
     description: Server to attach volume to
+
+  ceph_mountpoints:
+    type: comma_delimited_list
+    label: List of device mount points for our ceph nodes
+    description: This parameter is used interally, do not override
+    default: "/dev/xvdf,/dev/xvdg,/dev/xvdh,/dev/xvdi,/dev/xvdj,/dev/xvdk"
+
+  device_index:
+    type: number
 
 resources:
   volume:
@@ -23,3 +32,4 @@ resources:
     properties:
       volume_id: { get_resource: volume }
       instance_uuid: { get_param: instance_id}
+      mountpoint: { get_param: [ ceph_mountpoints, { get_param: device_index } ] }

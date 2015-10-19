@@ -1,4 +1,4 @@
-heat_template_version: 2013-05-23
+heat_template_version: 2014-10-16
 
 parameters:
   image:
@@ -64,6 +64,12 @@ parameters:
   heat_storage:
     type: string
 
+  ceph_mountpoints:
+    type: comma_delimited_list
+    label: List of device mount points for our ceph nodes
+    description: This parameter is used interally, do not override
+    default: "/dev/xvdf,/dev/xvdg,/dev/xvdh,/dev/xvdi,/dev/xvdj,/dev/xvdk"
+
 resources:
   ceph_node_wait:
     type: "OS::Heat::SwiftSignal"
@@ -97,7 +103,7 @@ resources:
       user_data_format: RAW
       user_data:
         str_replace:
-          template: { get_file: config_compute_all.sh }
+          template: { get_file: config_ceph_all.sh }
           params:
             "%%ID%%": { list_join: ["", ["2", { get_param: group_index }]] }
             "%%PUBLIC_KEY%%": { get_param: public_key }
@@ -115,3 +121,5 @@ resources:
         properties:
           instance_id: { get_resource: ceph_node }
           volume_size: { get_param: volume_size }
+          ceph_mountpoints: { get_param: ceph_mountpoints }
+          device_index: '%index%'

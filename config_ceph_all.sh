@@ -163,18 +163,4 @@ iface br-vxlan inet static
 EOF
 
 ifup -a
-
-# Partition Cloud Block Storage disk used by cinder and swift
-fdisk /dev/xvdf << EOF
-n
-p
-1
-
-
-w
-EOF
-
-pvcreate /dev/xvdf1
-vgcreate cinder-volumes /dev/xvdf1
-
 %%CURL_CLI%% --data-binary '{"status": "SUCCESS"}'

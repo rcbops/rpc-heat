@@ -51,7 +51,6 @@ pushd openstack-ansible
     git merge FETCH_HEAD
   fi
 
-  export ANSIBLE_ROLE_FILE="/opt/rpc-openstack/ansible-role-requirements.yml"
   scripts/bootstrap-ansible.sh
   cp -a etc/openstack_deploy /etc/
 
@@ -125,18 +124,18 @@ pushd rpcd
     echo "public_network: 172.29.236.0/22" | tee -a ${config_dir}/user_extras_variables.yml
     echo "\
 devices:
-  - /dev/xvdc
-  - /dev/xvdf
   - /dev/xvdg
   - /dev/xvdh
-  - /dev/xvdi" | tee -a ${config_dir}/user_extras_variables.yml
+  - /dev/xvdi
+  - /dev/xvdj
+  - /dev/xvdk" | tee -a ${config_dir}/user_extras_variables.yml
     echo "\
 raw_journal_devices:
-  - /dev/xvdb
-  - /dev/xvdb
-  - /dev/xvdb
-  - /dev/xvdb
-  - /dev/xvdb" | tee -a ${config_dir}/user_extras_variables.yml
+  - /dev/xvdf
+  - /dev/xvdf
+  - /dev/xvdf
+  - /dev/xvdf
+  - /dev/xvdf" | tee -a ${config_dir}/user_extras_variables.yml
     echo "pool_default_size: 3" | tee -a ${config_dir}/user_extras_variables.yml
   fi
 
@@ -174,7 +173,8 @@ if [ "%%RUN_ANSIBLE%%" = "True" ]; then
   fi
   pushd ${checkout_dir}/rpc-openstack
     export DEPLOY_HAPROXY="yes"
-    export DEPLOY_OSAD=$DELOY_OPENSTACK
+    export DEPLOY_CEPH=$DEPLOY_CEPH
+    export DEPLOY_OA=$DELOY_OPENSTACK
     export DEPLOY_ELK=$DEPLOY_LOGGING
     export DEPLOY_MAAS=$DEPLOY_MONITORING
     export DEPLOY_CEILOMETER="no"

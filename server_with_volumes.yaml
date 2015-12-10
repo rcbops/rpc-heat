@@ -81,6 +81,34 @@ resources:
   ceph_node_wait_handle:
     type: "OS::Heat::SwiftSignalHandle"
 
+  boot_config:
+    type: Heat::InstallConfigAgent
+
+  ceph_node_config:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: script
+      config:
+        str_replace:
+          template: { get_file: config_ceph_all.sh }
+          params:
+            "%%ID%%": { list_join: ["", ["2", { get_param: group_index }]] }
+            "%%PUBLIC_KEY%%": { get_param: public_key }
+            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
+            "%%DEPLOY_CEPH%%": { get_param: deploy_ceph }
+            "%%CEPH_NODE_COUNT%%": { get_param: ceph_node_count }
+            "%%CURL_CLI%%": { get_attr: ['ceph_node_wait_handle', 'curl_cli'] }
+      outputs:
+        - name: result
+
+  deploy_ceph_node:
+    type: OS::Heat::SoftwareDeployment
+    depends_on: [ceph_node_volumes]
+    properties:
+      signal_transport: TEMP_URL_SIGNAL
+      config: { get_resource: ceph_node_config }
+      server: { get_resource: ceph_node }
+
   ceph_node:
     type: "OS::Nova::Server"
     properties:
@@ -100,17 +128,9 @@ resources:
         - uuid: { get_param: heat_tunnel }
         - uuid: { get_param: heat_storage }
       config_drive: True
-      user_data_format: RAW
-      user_data:
-        str_replace:
-          template: { get_file: config_ceph_all.sh }
-          params:
-            "%%ID%%": { list_join: ["", ["2", { get_param: group_index }]] }
-            "%%PUBLIC_KEY%%": { get_param: public_key }
-            "%%CLUSTER_PREFIX%%": { get_param: cluster_prefix }
-            "%%DEPLOY_CEPH%%": { get_param: deploy_ceph }
-            "%%CEPH_NODE_COUNT%%": { get_param: ceph_node_count }
-            "%%CURL_CLI%%": { get_attr: ['ceph_node_wait_handle', 'curl_cli'] }
+      user_data_format: SOFTWARE_CONFIG
+      software_config_transport: POLL_TEMP_URL
+      user_data: { get_attr: [boot_config, config] }
 
   ceph_node_volumes:
     type: 'OS::Heat::ResourceGroup'

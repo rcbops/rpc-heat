@@ -44,7 +44,7 @@ for interface in eth1 eth2 eth3 eth4; do
 done
 
 cat $INTERFACES | while read line; do
-  if echo "$line" | grep "# Label heat_"; then
+  if echo "$line" | egrep "# Label .*%%CLUSTER_PREFIX%%_"; then
     found=1
   fi
 

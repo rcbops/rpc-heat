@@ -20,25 +20,22 @@ EOF
 ifup -a
 
 # Partition Cloud Block Storage disk used by cinder and swift
-fdisk /dev/xvdf << EOF
-n
-p
-1
-
-
-w
-EOF
+if [ ! -b /dev/xvdf1 ]; then
+    echo -e "n\np\n1\n\n\nw\n" | fdisk /dev/xvdf
+fi
 
 if [ "%%DEPLOY_SWIFT%%" = "yes" ]; then
-  pvcreate /dev/xvdf1
-  vgcreate swift /dev/xvdf1
+    pvcreate /dev/xvdf1 || true
+    vgcreate swift /dev/xvdf1 || true
 
-  for DISK in disk1 disk2 disk3; do
-    lvcreate -L 10G -n ${DISK} swift
-    echo "/dev/swift/${DISK} /srv/${DISK} xfs loop,noatime,nodiratime,nobarrier,logbufs=8 0 0" >> /etc/fstab
-    mkfs.xfs -f /dev/swift/${DISK}
-    mkdir -p /srv/${DISK}
-    mount /srv/${DISK}
-  done
+    for DISK in disk1 disk2 disk3; do
+        if [ ! mountpoint /srv/${DISK}]; then
+            lvcreate -L 10G -n ${DISK} swift
+            echo "/dev/swift/${DISK} /srv/${DISK} xfs loop,noatime,nodiratime,nobarrier,logbufs=8 0 0" >> /etc/fstab
+            mkfs.xfs -f /dev/swift/${DISK}
+            mkdir -p /srv/${DISK}
+            mount /srv/${DISK}
+        fi
+   done
 fi
 

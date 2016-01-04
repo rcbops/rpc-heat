@@ -257,22 +257,49 @@ resources:
       save_private_key: true
 
   heat_mgmt_vxlan:
-    type: Rackspace::Cloud::Network
+    type: OS::Neutron::Net
     properties:
+      name:
+        str_replace:
+          template: stack_mgmt_vxlan
+          params:
+            stack: { get_param: "OS::stack_name" }
+
+  heat_mgmt_vxlan_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network: { get_resource: heat_mgmt_vxlan }
       cidr: 172.29.236.0/22
-      label: heat_mgmt_vxlan
 
   heat_tunnel:
-    type: Rackspace::Cloud::Network
+    type: OS::Neutron::Net
     properties:
+      name:
+        str_replace:
+          template: stack_tunnel
+          params:
+            stack: { get_param: "OS::stack_name" }
+
+  heat_tunnel_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network: { get_resource: heat_tunnel }
       cidr: 172.29.240.0/22
-      label: heat_tunnel
 
   heat_storage:
-    type: Rackspace::Cloud::Network
+    type: OS::Neutron::Net
     properties:
+      name:
+        str_replace:
+          template: stack_storage
+          params:
+            stack: { get_param: "OS::stack_name" }
+
+  heat_storage_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network: { get_resource: heat_storage }
       cidr: 172.29.228.0/22
-      label: heat_storage
 
   controller1:
     type: "OS::Nova::Server"

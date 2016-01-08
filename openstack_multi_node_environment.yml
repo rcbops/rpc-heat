@@ -1,3 +1,4 @@
 resource_registry:
   RPC::Server::WithVolumes: server_with_volumes.yaml
   RPC::Volume::WithAttachment: volume_with_attachment.yaml
+  Heat::InstallConfigAgent: heat-templates/hot/software-config/boot-config/templates/install_config_agent_ubuntu_pip.yaml

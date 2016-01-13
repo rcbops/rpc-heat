@@ -35,44 +35,28 @@ echo -n "%%PUBLIC_KEY%%" > .ssh/id_rsa.pub
 echo -n "%%PUBLIC_KEY%%" >> .ssh/authorized_keys
 chmod 600 .ssh/*
 
-found=0
-found_private=0
-tmp_file=$(mktemp)
-
 for interface in eth1 eth2 eth3 eth4; do
   ifdown $interface
 done
 
-cat $INTERFACES | while read line; do
-  if echo "$line" | egrep "# Label .*%%CLUSTER_PREFIX%%_"; then
-    found=1
-  fi
+# Convert private network config into br-snet config and write to br-snet.cfg
+sed -n '/Label private/,/^$/ {
+          s/eth1/br-snet/
+          s/^$/    bridge_ports eth1/
+          p
+        }' ${INTERFACES} > ${INTERFACES_D}/br-snet.cfg
 
-  if echo "$line" | grep "# Label private"; then
-    found_private=1
-  fi
+# Write public network config into eth0.cfg
+sed -n '/Label public/,/^$/p' $INTERFACES > ${INTERFACES_D}/eth0.cfg
 
-  if [ $found -eq 1 ] && [ "$line" = "" ]; then
-    found=0
-  fi
+# write new interfaces file with loopback and source line only
+cat >${INTERFACES} <<EOF
+# The loopback network interface
+auto lo
+iface lo inet loopback
 
-  if [ $found_private -eq 1 ] && [ "$line" = "" ]; then
-    echo "bridge_ports eth1" >> ${INTERFACES_D}/br-snet.cfg
-    found_private=0
-  fi
-
-  if [ $found -eq 0 ] && [ $found_private -eq 0 ]; then
-    echo "$line" >> $tmp_file
-  fi
-
-  if [ $found_private -eq 1 ]; then
-    echo "$line" | sed -e 's/eth1/br-snet/g' >> ${INTERFACES_D}/br-snet.cfg
-  fi
-done
-
-echo "source ${INTERFACES_D}/*.cfg" >> $tmp_file
-
-mv -f $tmp_file ${INTERFACES}
+source ${INTERFACES_D}/*.cfg
+EOF
 
 cat > ${INTERFACES_D}/eth1.cfg << "EOF"
 auto eth1

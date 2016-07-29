@@ -1,3 +1,7 @@
+# DEPRECATED
+
+Please use https://github.com/cloud-training/rpc-heat-ansible instead.
+
 **To run:**
 
 ```
